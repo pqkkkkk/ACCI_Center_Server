@@ -1,0 +1,6 @@
+@ACCI_Center_HostAddress = http://localhost:5013
+
+GET {{ACCI_Center_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
