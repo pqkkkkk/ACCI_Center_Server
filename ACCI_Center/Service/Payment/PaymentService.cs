@@ -12,7 +12,7 @@ using ACCI_Center.Entity;
 
 namespace ACCI_Center.Service.Payment
 {
-    public class PaymentService : PaginationService<Entity.Invoice>, IPaymentService
+    public class PaymentService : IPaymentService
     {
         private readonly IInvoiceDao invoiceDao;
         private readonly IRegisterInformationDao registerInformationDao;

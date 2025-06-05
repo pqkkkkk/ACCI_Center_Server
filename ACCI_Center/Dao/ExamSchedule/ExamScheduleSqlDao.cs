@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ACCI_Center.Configuraion;
+using ACCI_Center.Dto;
 using ACCI_Center.Entity;
 
 namespace ACCI_Center.Dao.ExamSchedule
@@ -18,24 +19,35 @@ namespace ACCI_Center.Dao.ExamSchedule
             this.dataClient = dataClient;
             dbConnection = dataClient.GetDbConnection();
         }
-        public List<Entity.ExamSchedule> LoadData(int itemsPerPage, int currentPage)
+
+        public PagedResult<Test> GetTests(int pageSize, int currentPageNumber)
         {
-            dbConnection.Open();
+            string baseSql = @"
+                SELECT * 
+                FROM BAITHI";
+            string orderByClause = "ORDER BY MaBaiThi";
 
-            var command = dbConnection.CreateCommand();
-            command.CommandText = "SELECT * FROM ExamSchedule ORDER BY NgayThi OFFSET @Offset ROWS FETCH NEXT @Fetch ROWS ONLY";
-            var reader = command.ExecuteReader();
-
-            List<Entity.ExamSchedule> examSchedules = new List<Entity.ExamSchedule>();
-            while (reader.Read())
+            Func<DbDataReader, Test> mapFunc = reader => new Test
             {
-                var examSchedule = DataReaderMapper.MapToObject<Entity.ExamSchedule>(reader);
-                examSchedules.Add(examSchedule);
-            }
+                MaBaiThi = reader.GetInt32(reader.GetOrdinal("MaBaiThi")),
+                TenBaiThi = reader.GetString(reader.GetOrdinal("TenBaiThi")),
+                SoLuongThiSinhToiDa = reader.GetInt32(reader.GetOrdinal("SoLuongThiSinhToiDa")),
+                SoLuongThiSinhToiThieu = reader.GetInt32(reader.GetOrdinal("SoLuongThiSinhToiThieu")),
+                GiaDangKy = Convert.ToDouble(reader.GetValue(reader.GetOrdinal("GiaDangKy"))),
+                LoaiBaiThi = reader.GetString(reader.GetOrdinal("LoaiBaiThi")),
+                ThoiGianThi = reader.GetInt32(reader.GetOrdinal("ThoiGianThi"))
+            };
 
-            reader.Close();
+            var dbParameters = new DbParameter[] { };
 
-            return examSchedules;
+            return Helper.PaginationHelper.ExecutePagedAsync<Entity.Test>(
+                dbConnection,
+                baseSql,
+                orderByClause,
+                mapFunc,
+                currentPageNumber,
+                pageSize,
+                dbParameters).GetAwaiter().GetResult();
         }
     }
 }

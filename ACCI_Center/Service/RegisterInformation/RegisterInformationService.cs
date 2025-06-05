@@ -10,7 +10,7 @@ using ACCI_Center.FilterField;
 
 namespace ACCI_Center.Service.TTDangKy
 {
-    class RegisterInformationService : PaginationService<Entity.RegisterInformation>, IRegisterInformationService
+    class RegisterInformationService : IRegisterInformationService
     {
         private IRegisterInformationDao TTDangKyDao;
         private IExamScheduleDao LichThiDao;
