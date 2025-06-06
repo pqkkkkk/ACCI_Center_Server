@@ -5,11 +5,18 @@ using System.Text;
 using System.Threading.Tasks;
 using ACCI_Center.FilterField;
 using ACCI_Center.Entity;
+using ACCI_Center.Dao.ExamSchedule;
+using ACCI_Center.Dto;
 
 namespace ACCI_Center.Service.ExamSchedule
 {
-    public class ExamScheduleService  : PaginationService<Entity.ExamSchedule>, IExamScheduleService
+    public class ExamScheduleService : IExamScheduleService
     {
+        private readonly IExamScheduleDao examScheduleDao;
+        public ExamScheduleService(IExamScheduleDao examScheduleDao)
+        {
+            this.examScheduleDao = examScheduleDao;
+        }
         public int CreateExamSchedule(Entity.ExamSchedule examSchedule)
         {
             throw new NotImplementedException();
@@ -38,6 +45,19 @@ namespace ACCI_Center.Service.ExamSchedule
         public List<Entity.ExamSchedule> LoadExamSchedules(Dictionary<ExamScheduleFilterField, object> filterFields)
         {
             throw new NotImplementedException();
+        }
+
+        public PagedResult<Test> LoadTests(int pageSize, int currentPageNumber, TestFilterObject testFilterObject)
+        {
+            try
+            {
+                return examScheduleDao.GetTests(pageSize, currentPageNumber,testFilterObject);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+                return new PagedResult<Test>(null, 0, 0,0);
+            }
         }
 
         public int NotifyAboutReceivingExamResult()
