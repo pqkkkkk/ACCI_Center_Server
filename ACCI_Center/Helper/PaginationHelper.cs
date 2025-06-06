@@ -48,7 +48,16 @@ namespace ACCI_Center.Helper
 
                 var parametersWithPaging = new List<DbParameter>();
                 if (dbParameters != null && dbParameters.Length > 0)
-                    parametersWithPaging.AddRange(dbParameters);
+                {
+                    for (var i = 0; i < dbParameters.Length; i++)
+                    {
+                        var param = dbConnection.CreateCommand().CreateParameter();
+                        param.ParameterName = dbParameters[i].ParameterName;
+                        param.DbType = dbParameters[i].DbType;
+                        param.Value = dbParameters[i].Value ?? DBNull.Value; // Handle null values
+                        parametersWithPaging.Add(param);
+                    }
+                }
 
                 var offsetParam = dbConnection.CreateCommand().CreateParameter();
                 offsetParam.ParameterName = "@Offset";

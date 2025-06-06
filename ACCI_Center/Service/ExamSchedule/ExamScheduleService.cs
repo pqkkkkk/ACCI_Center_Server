@@ -47,11 +47,11 @@ namespace ACCI_Center.Service.ExamSchedule
             throw new NotImplementedException();
         }
 
-        public PagedResult<Test> LoadTests(int pageSize, int currentPageNumber)
+        public PagedResult<Test> LoadTests(int pageSize, int currentPageNumber, TestFilterObject testFilterObject)
         {
             try
             {
-                return examScheduleDao.GetTests(pageSize, currentPageNumber);
+                return examScheduleDao.GetTests(pageSize, currentPageNumber,testFilterObject);
             }
             catch (Exception ex)
             {
