@@ -41,12 +41,6 @@ namespace ACCI_Center.Service.ExamSchedule
         {
             throw new NotImplementedException();
         }
-
-        public List<Entity.ExamSchedule> LoadExamSchedules(Dictionary<ExamScheduleFilterField, object> filterFields)
-        {
-            throw new NotImplementedException();
-        }
-
         public PagedResult<Test> LoadTests(int pageSize, int currentPageNumber, TestFilterObject testFilterObject)
         {
             try

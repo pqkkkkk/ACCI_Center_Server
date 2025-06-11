@@ -14,7 +14,8 @@ namespace ACCI_Center.Service.TTGiaHan
         public int ExtendExamTimeFree(Entity.ExtensionInformation TTGiaHan);
         public int ExtendExamTimePaid(Entity.ExtensionInformation TTGiaHan);
         public List<Entity.ExtensionInformation> LoadExtendInformation();
-        public List<Entity.ExtensionInformation> LoadExtendInformation(Dictionary<ExtensionInformationFilterField,object> filterFields);
+        public List<Entity.ExtensionInformation> LoadExtendInformation(int pageSize, int currentPageNumber,
+            ExtensionInformationFilterObject extensionInformationFilterObject);
         public Entity.ExtensionInformation LoadExtendInformationById(int maTTGiaHan);
     }
 }

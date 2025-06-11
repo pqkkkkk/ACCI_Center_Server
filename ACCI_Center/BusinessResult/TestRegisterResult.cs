@@ -14,5 +14,7 @@ namespace ACCI_Center.BusinessResult
         NoAvailableTimeSlot,
         NoAvailableEmployee,
         UnknownError,
+        InvalidOrganizationInformation,
+        InvalidTestInformation,
     }
 }

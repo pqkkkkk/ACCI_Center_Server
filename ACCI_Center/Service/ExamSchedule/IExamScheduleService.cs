@@ -15,7 +15,6 @@ namespace ACCI_Center.Service.ExamSchedule
         public int ReleaseExamRegisterForm();
         public int NotifyAboutReceivingExamResult();
         public List<Entity.ExamSchedule> LoadExamSchedules();
-        public List<Entity.ExamSchedule> LoadExamSchedules(Dictionary<ExamScheduleFilterField,object> filterFields);
         public PagedResult<Entity.Test> LoadTests(int pageSize, int currentPageNumber, TestFilterObject testFilterObject);
         public Entity.ExamSchedule? GetExamScheduleById(int MaLichThi);
         public List<Entity.CandidateInformation> LoadCandidatesOfAExamSchedule(int MaLichThi);

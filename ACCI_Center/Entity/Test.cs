@@ -10,6 +10,6 @@ namespace ACCI_Center.Entity
         public double GiaDangKy { get; set; }
         public int SoLuongThiSinhToiDa { get; set; }
         public int SoLuongThiSinhToiThieu { get; set; }
-        public int ThoiGianThi { get; set; } // Thời gian thi tính bằng phú
+        public int ThoiGianThi { get; set; } // Thời gian thi tính bằng phút
     }
 }

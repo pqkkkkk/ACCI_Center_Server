@@ -9,6 +9,7 @@ using ACCI_Center.Dao.ExamSchedule;
 using ACCI_Center.Dao.RegisterInformation;
 using ACCI_Center.Dao.ExtensionInformation;
 using ACCI_Center.FilterField;
+using ACCI_Center.Entity;
 
 namespace ACCI_Center.Service.TTGiaHan
 {
@@ -41,7 +42,7 @@ namespace ACCI_Center.Service.TTGiaHan
             throw new NotImplementedException();
         }
 
-        public List<Entity.ExtensionInformation> LoadExtendInformation(Dictionary<ExtensionInformationFilterField, object> filterFields)
+        public List<ExtensionInformation> LoadExtendInformation(int pageSize, int currentPageNumber, ExtensionInformationFilterObject extensionInformationFilterObject)
         {
             throw new NotImplementedException();
         }

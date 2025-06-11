@@ -11,7 +11,7 @@ namespace ACCI_Center.Entity
     {
         public int MaHoaDon { get; set; }
         public DateTime ThoiDiemTao { get; set; }
-        public DateTime ThoiDiemThanhToan { get; set; }
+        public DateTime? ThoiDiemThanhToan { get; set; }
         public double TongTien { get; set; }
         public string TrangThai { get; set; }
         public string LoaiHoaDon { get; set; }

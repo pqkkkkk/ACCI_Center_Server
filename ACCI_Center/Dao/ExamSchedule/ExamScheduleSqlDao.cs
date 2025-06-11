@@ -88,5 +88,201 @@ namespace ACCI_Center.Dao.ExamSchedule
                 pageSize,
                 dbParameters).GetAwaiter().GetResult();
         }
+        private DbParameter[] BuildParametersForAddExamSchedule(Entity.ExamSchedule examSchedule)
+        {
+            var parameters = new List<DbParameter>();
+            var baiThiParam = dbConnection.CreateCommand().CreateParameter();
+
+            baiThiParam.ParameterName = "@BaiThi";
+            baiThiParam.Value = examSchedule.BaiThi;
+            parameters.Add(baiThiParam);
+
+            var ngayThiParam = dbConnection.CreateCommand().CreateParameter();
+            ngayThiParam.ParameterName = "@NgayThi";
+            ngayThiParam.Value = examSchedule.NgayThi;
+            parameters.Add(ngayThiParam);
+
+            var soLuongThiSinhHienTaiParam = dbConnection.CreateCommand().CreateParameter();
+            soLuongThiSinhHienTaiParam.ParameterName = "@SoLuongThiSinhHienTai";
+            soLuongThiSinhHienTaiParam.Value = examSchedule.SoLuongThiSinhHienTai;
+            parameters.Add(soLuongThiSinhHienTaiParam);
+
+            var daNhapKetQuaThiParam = dbConnection.CreateCommand().CreateParameter();
+            daNhapKetQuaThiParam.ParameterName = "@DaNhapKetQuaThi";
+            daNhapKetQuaThiParam.Value = examSchedule.DaNhapKetQuaThi;
+            parameters.Add(daNhapKetQuaThiParam);
+
+            var daThongBaoKetQuaThiParam = dbConnection.CreateCommand().CreateParameter();
+            daThongBaoKetQuaThiParam.ParameterName = "@DaThongBaoKetQuaThi";
+            daThongBaoKetQuaThiParam.Value = examSchedule.DaThongBaoKetQuaThi;
+            parameters.Add(daThongBaoKetQuaThiParam);
+
+            var phongThiParam = dbConnection.CreateCommand().CreateParameter();
+            phongThiParam.ParameterName = "@PhongThi";
+            phongThiParam.Value = examSchedule.PhongThi;
+            parameters.Add(phongThiParam);
+
+            return parameters.ToArray();
+        }
+        public int AddExamSchedule(Entity.ExamSchedule examSchedule, int employeeId)
+        {
+            int examScheduleId = -1;
+
+            string sql = """
+                INSERT INTO LICHTHI (BaiThi, NgayThi, SoLuongThiSinhHienTai, DaNhapKetQuaThi, DaThongBaoKetQuaThi, PhongThi)
+                VALUES (@BaiThi, @NgayThi, @SoLuongThiSinhHienTai, @DaNhapKetQuaThi, @DaThongBaoKetQuaThi, @PhongThi);
+                SELECT CAST(SCOPE_IDENTITY() AS int);
+                """;
+            DbParameter[] parameters = BuildParametersForAddExamSchedule(examSchedule);
+            using (var command = dbConnection.CreateCommand())
+            {
+                command.CommandText = sql;
+                command.Parameters.AddRange(parameters);
+
+                var result = command.ExecuteScalar();
+                examScheduleId = result != null ? Convert.ToInt32(result) : -1;
+            }
+
+            string insertEmployeeSql = """
+                INSERT INTO NHANVIENCOITHI (MaNhanVien, MaLichThi)
+                VALUES (@MaNhanVien, @MaLichThi);
+                """;
+            using (var command = dbConnection.CreateCommand())
+            {
+                command.CommandText = insertEmployeeSql;
+                var employeeParam = command.CreateParameter();
+                employeeParam.ParameterName = "@MaNhanVien";
+                employeeParam.Value = employeeId;
+                command.Parameters.Add(employeeParam);
+                var examScheduleIdParam = command.CreateParameter();
+                examScheduleIdParam.ParameterName = "@MaLichThi";
+                examScheduleIdParam.Value = examScheduleId;
+                command.Parameters.Add(examScheduleIdParam);
+                command.ExecuteNonQuery();
+            }
+
+            return examScheduleId;
+        }
+
+        public double GetFeeOfTheTest(int testId)
+        {
+            string sql = """
+                SELECT GiaDangKy FROM BAITHI
+                WHERE MaBaiThi = @MaBaiThi;
+                """;
+            using (var command = dbConnection.CreateCommand())
+            {
+                command.CommandText = sql;
+                var param = command.CreateParameter();
+                param.ParameterName = "@MaBaiThi";
+                param.Value = testId;
+                command.Parameters.Add(param);
+
+                var result = command.ExecuteScalar();
+                return result != null && result != DBNull.Value
+                    ? Convert.ToDouble(result)
+                    : -1.0;
+            }
+        }
+
+        public List<int> GetAllEmptyRoomIds(DateTime desiredExamTime, int testId)
+        {
+            string sql = """
+                        select MaPhongThi
+                        from PHONGTHI
+                        except
+                        select PhongThi
+                        from LICHTHI lt join BAITHI bt on lt.BaiThi = bt.MaBaiThi
+                        where (lt.NgayThi <= @desiredEndExamTime and lt.NgayThi >= @desiredStartExamTime)
+                        		or (DATEADD(minute, bt.ThoiGianThi, lt.NgayThi) >= @desiredStartExamTime and DATEADD(minute, bt.ThoiGianThi, lt.NgayThi) <= @desiredStartExamTime);
+                        """;
+
+            using(var command = dbConnection.CreateCommand())
+            {
+                command.CommandText = sql;
+                var startExamTimeParam = command.CreateParameter();
+                startExamTimeParam.ParameterName = "@desiredStartExamTime";
+                startExamTimeParam.Value = desiredExamTime;
+                command.Parameters.Add(startExamTimeParam);
+                var endExamTimeParam = command.CreateParameter();
+                endExamTimeParam.ParameterName = "@desiredEndExamTime";
+                endExamTimeParam.Value = desiredExamTime.AddMinutes(30);
+                command.Parameters.Add(endExamTimeParam);
+
+                var reader = command.ExecuteReader();
+                List<int> emptyRoomIds = new List<int>();
+
+                while (reader.Read())
+                {
+                    emptyRoomIds.Add(reader.GetInt32(0));
+                }
+
+                return emptyRoomIds;
+            } 
+        }
+
+        public List<int> GetAllFreeEmployeeIds(DateTime desiredExamTime, int testId)
+        {
+            string sql = """
+                select MaNhanVien
+                from NHANVIEN
+                except
+                select MaNhanVien
+                from NHANVIENCOITHI nvct join LICHTHI lt on lt.MaLichThi = nvct.MaLichThi
+                						 join BAITHI bt on lt.BaiThi = bt.MaBaiThi
+                where (lt.NgayThi <= @desiredEndExamTime2 and lt.NgayThi >= @desiredStartExamTime2)
+                		or (DATEADD(minute, bt.ThoiGianThi, lt.NgayThi) >= @desiredStartExamTime2 and DATEADD(minute, bt.ThoiGianThi, lt.NgayThi) <= @desiredStartExamTime2);
+                """;
+
+            using (var command = dbConnection.CreateCommand())
+            {
+                command.CommandText = sql;
+                var startExamTimeParam = command.CreateParameter();
+                startExamTimeParam.ParameterName = "@desiredStartExamTime2";
+                startExamTimeParam.Value = desiredExamTime;
+                command.Parameters.Add(startExamTimeParam);
+                var endExamTimeParam = command.CreateParameter();
+                endExamTimeParam.ParameterName = "@desiredEndExamTime2";
+                endExamTimeParam.Value = desiredExamTime.AddMinutes(30);
+                command.Parameters.Add(endExamTimeParam);
+
+                var reader = command.ExecuteReader();
+                List<int> freeEmployeeIds = new List<int>();
+                while (reader.Read())
+                {
+                    freeEmployeeIds.Add(reader.GetInt32(0));
+                }
+
+                return freeEmployeeIds;
+            }
+        }
+
+        public Test GetTestById(int testId)
+        {
+            string sql = """
+                select * from BAITHI
+                where MaBaiThi = @MaBaiThi;
+                """;
+            using (var command = dbConnection.CreateCommand())
+            {
+                command.CommandText = sql;
+                var param = command.CreateParameter();
+                param.ParameterName = "@MaBaiThi";
+                param.Value = testId;
+                command.Parameters.Add(param);
+
+                using (var reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return testMapFunc(reader);
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+        }
     }
 }
