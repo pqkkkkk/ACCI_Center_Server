@@ -52,5 +52,10 @@ namespace ACCI_Center.Service.TTDangKy
         {
             throw new NotImplementedException();
         }
+
+        public int ReleaseExamRegisterForm()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

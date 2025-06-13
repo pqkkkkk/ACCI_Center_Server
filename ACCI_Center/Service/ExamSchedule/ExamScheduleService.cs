@@ -58,10 +58,5 @@ namespace ACCI_Center.Service.ExamSchedule
         {
             throw new NotImplementedException();
         }
-
-        public int ReleaseExamRegisterForm()
-        {
-            throw new NotImplementedException();
-        }
     }
 }
