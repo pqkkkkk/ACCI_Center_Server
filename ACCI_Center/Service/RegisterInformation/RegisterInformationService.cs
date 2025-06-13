@@ -5,30 +5,30 @@ using System.Text;
 using System.Threading.Tasks;
 using ACCI_Center.BusinessResult;
 using ACCI_Center.Dao.ExamSchedule;
+using ACCI_Center.Dao.Invoice;
 using ACCI_Center.Dao.RegisterInformation;
+using ACCI_Center.Dto.Request;
 using ACCI_Center.FilterField;
 
 namespace ACCI_Center.Service.TTDangKy
 {
     class RegisterInformationService : IRegisterInformationService
     {
-        private IRegisterInformationDao TTDangKyDao;
-        private IExamScheduleDao LichThiDao;
-        public RegisterInformationService(IRegisterInformationDao ttDangKyDao, IExamScheduleDao lichThiDao)
+        private IRegisterInformationDao registerInformationDao;
+        private IExamScheduleDao examScheduleDao;
+        private IInvoiceDao invoiceDao;
+        public RegisterInformationService(IRegisterInformationDao ttDangKyDao, IExamScheduleDao lichThiDao,
+                                          IInvoiceDao invoiceDao)
         {
-            TTDangKyDao = ttDangKyDao;
-            LichThiDao = lichThiDao;
+            registerInformationDao = ttDangKyDao;
+            examScheduleDao = lichThiDao;
+            this.invoiceDao = invoiceDao;
         }
-        public TestRegisterResult ValidateRegisterRequest()
+        public RegisterResult ValidateRegisterRequest(OrganizationRegisterRequest organizationRegisterRequest)
         {
             throw new NotImplementedException();
         }
-        public TestRegisterResult RegisterForOrganization()
-        {
-            throw new NotImplementedException();
-        }
-
-        public TestRegisterResult RegisterForIndividual()
+        public RegisterResult RegisterForIndividual()
         {
             throw new NotImplementedException();
         }
@@ -38,12 +38,17 @@ namespace ACCI_Center.Service.TTDangKy
             throw new NotImplementedException();
         }
 
-        public List<Entity.RegisterInformation> LoadRegisterInformation(Dictionary<RegisterInformationFilterField, object> filterFields)
+        public List<Entity.RegisterInformation> LoadRegisterInformation(RegisterInformationFilterObject registerInformationFilterObject)
         {
             throw new NotImplementedException();
         }
 
         public List<Entity.RegisterInformation> LoadRegisterInformation(int MaTTDangKy)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<Entity.RegisterInformation> LoadRegisterInformation(int pageSize, int currentPageNumber, RegisterInformationFilterObject registerInformationFilterObject)
         {
             throw new NotImplementedException();
         }

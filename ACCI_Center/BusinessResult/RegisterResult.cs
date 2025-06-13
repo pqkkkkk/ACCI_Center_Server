@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ACCI_Center.BusinessResult
 {
-    public enum TestRegisterResult
+    public enum RegisterResult
     {
         Success,
         CandidateQuantityTooLow,
@@ -14,5 +14,7 @@ namespace ACCI_Center.BusinessResult
         NoAvailableTimeSlot,
         NoAvailableEmployee,
         UnknownError,
+        InvalidOrganizationInformation,
+        InvalidTestInformation,
     }
 }

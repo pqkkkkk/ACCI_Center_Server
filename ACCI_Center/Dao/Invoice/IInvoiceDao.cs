@@ -8,5 +8,6 @@ namespace ACCI_Center.Dao.Invoice
 {
     public interface IInvoiceDao
     {
+        public int AddInvoice(Entity.Invoice invoice);
     }
 }

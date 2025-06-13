@@ -7,16 +7,15 @@ using System.Threading.Tasks;
 
 namespace ACCI_Center.Entity
 {
-    public class ExamSchedule : INotifyPropertyChanged
+    public class ExamSchedule
     {
         public int MaLichThi { get; set; }
         public DateTime NgayThi { get; set; }
-        public string BaiThi { get; set; }
-        public int SoLuongThiSinhToiDa { get; set; }
-        public int SoLuongThiSinhToiThieu { get; set; }
+        public DateTime ThoiDiemKetThuc { get; set; }
+        public int BaiThi { get; set; }
         public int SoLuongThiSinhHienTai { get; set; }
+        public bool DaNhapKetQuaThi { get; set; }
+        public bool DaThongBaoKetQuaThi { get; set; }
         public int PhongThi { get; set; }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
     }
 }

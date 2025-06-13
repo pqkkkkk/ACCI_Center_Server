@@ -10,9 +10,17 @@ namespace ACCI_Center.Dao.ExamSchedule
 {
     public interface IExamScheduleDao
     {
+        public int AddExamSchedule(Entity.ExamSchedule examSchedule,
+                                    int employeeId);
+
         public Dto.PagedResult<Entity.Test> GetTests(
             int pageSize,
             int currentPageNumber,
             TestFilterObject testFilterObject);
+
+        public double GetFeeOfTheTest(int testId);
+        public Entity.Test GetTestById(int testId);
+        public List<int> GetAllEmptyRoomIds(DateTime desiredExamTime, int testId);
+        public List<int> GetAllFreeEmployeeIds(DateTime desiredExamTime, int testId);
     }
 }

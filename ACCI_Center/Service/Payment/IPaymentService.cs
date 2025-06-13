@@ -16,6 +16,6 @@ namespace ACCI_Center.Service.Payment
         public int PayForExtensionFee(int maTTGiaHan);
         public List<Entity.Invoice> LoadInvoices();
         public List<Entity.Invoice> GetInvoiceById(int maHoaDon);
-        public List<Entity.Invoice> LoadInvoices(Dictionary<InvoiceFilterField, object> filterFields);
+        public List<Entity.Invoice> LoadInvoices(int pageSize, int currentPageNumber, InvoiceFilterObject invoiceFilterObject);
     }
 }

@@ -36,12 +36,6 @@ namespace ACCI_Center.Service.Payment
         {
             throw new NotImplementedException();
         }
-
-        public List<Invoice> LoadInvoices(Dictionary<InvoiceFilterField, object> filterFields)
-        {
-            throw new NotImplementedException();
-        }
-
         public int PayForExtensionFee(int maTTGiaHan)
         {
             throw new NotImplementedException();
@@ -58,6 +52,11 @@ namespace ACCI_Center.Service.Payment
         }
 
         public ValidatePaymentRequestResult ValidatePaymentRequest(int maTTDangKy)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<Invoice> LoadInvoices(int pageSize, int currentPageNumber, InvoiceFilterObject invoiceFilterObject)
         {
             throw new NotImplementedException();
         }
