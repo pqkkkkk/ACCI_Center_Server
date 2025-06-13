@@ -8,8 +8,8 @@ namespace ACCI_Center.Service.RegisterInformation
         bool IsValidOrganizationInformation(Entity.RegisterInformation registerInformation);
         bool IsValidTestInformation(int testId, string testName);
         bool IsValidDesiredExamTime(DateTime desiredExamTime, int testId);
-        TestRegisterResult ValidateRegisterRequest(OrganizationRegisterRequest organizationRegisterRequest);
-        TestRegisterResult RegisterForOrganization(OrganizationRegisterRequest organizationRegisterRequest);
+        RegisterResult ValidateRegisterRequest(OrganizationRegisterRequest organizationRegisterRequest);
+        RegisterResult RegisterForOrganization(OrganizationRegisterRequest organizationRegisterRequest);
         double CalculateTotalFee(int testId, string testName, int candidateCount);
     }
 }

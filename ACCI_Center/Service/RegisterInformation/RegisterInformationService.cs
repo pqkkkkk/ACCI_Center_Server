@@ -24,11 +24,11 @@ namespace ACCI_Center.Service.TTDangKy
             examScheduleDao = lichThiDao;
             this.invoiceDao = invoiceDao;
         }
-        public TestRegisterResult ValidateRegisterRequest(OrganizationRegisterRequest organizationRegisterRequest)
+        public RegisterResult ValidateRegisterRequest(OrganizationRegisterRequest organizationRegisterRequest)
         {
             throw new NotImplementedException();
         }
-        public TestRegisterResult RegisterForIndividual()
+        public RegisterResult RegisterForIndividual()
         {
             throw new NotImplementedException();
         }

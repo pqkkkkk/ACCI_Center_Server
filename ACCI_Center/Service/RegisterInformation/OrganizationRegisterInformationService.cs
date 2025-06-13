@@ -74,30 +74,30 @@ namespace ACCI_Center.Service.RegisterInformation
 
             return true;
         }
-        public TestRegisterResult ValidateRegisterRequest(OrganizationRegisterRequest organizationRegisterRequest)
+        public RegisterResult ValidateRegisterRequest(OrganizationRegisterRequest organizationRegisterRequest)
         {
             if (!IsValidOrganizationInformation(organizationRegisterRequest.registerInformation))
             {
-                return TestRegisterResult.InvalidOrganizationInformation;
+                return RegisterResult.InvalidOrganizationInformation;
             }
             if (!IsValidTestInformation(organizationRegisterRequest.testId, organizationRegisterRequest.testName))
             {
-                return TestRegisterResult.InvalidTestInformation;
+                return RegisterResult.InvalidTestInformation;
             }
-            if (IsValidDesiredExamTime(organizationRegisterRequest.desiredExamTime, organizationRegisterRequest.testId))
+            if (!IsValidDesiredExamTime(organizationRegisterRequest.desiredExamTime, organizationRegisterRequest.testId))
             {
-                return TestRegisterResult.NoAvailableTimeSlot;
+                return RegisterResult.NoAvailableTimeSlot;
             }
 
-            return TestRegisterResult.Success;
+            return RegisterResult.Success;
 
         }
-        public TestRegisterResult RegisterForOrganization(OrganizationRegisterRequest organizationRegisterRequest)
+        public RegisterResult RegisterForOrganization(OrganizationRegisterRequest organizationRegisterRequest)
         {
             try
             {
-                TestRegisterResult testRegisterResult = ValidateRegisterRequest(organizationRegisterRequest);
-                if (testRegisterResult != TestRegisterResult.Success)
+                RegisterResult testRegisterResult = ValidateRegisterRequest(organizationRegisterRequest);
+                if (testRegisterResult != RegisterResult.Success)
                 {
                     return testRegisterResult;
                 }
@@ -116,18 +116,18 @@ namespace ACCI_Center.Service.RegisterInformation
                 int examScheduleId = examScheduleDao.AddExamSchedule(examSchedule, employeeId);
                 if (examScheduleId == -1)
                 {
-                    return TestRegisterResult.UnknownError;
+                    return RegisterResult.UnknownError;
                 }
 
                 int registerInformationId = registerInformationDao.AddRegisterInformation(organizationRegisterRequest.registerInformation);
                 if (registerInformationId == -1)
                 {
-                    return TestRegisterResult.UnknownError;
+                    return RegisterResult.UnknownError;
                 }
 
                 if (registerInformationDao.AddCandidateInformationsOfARegisterInformation(registerInformationId, organizationRegisterRequest.candidateInformations) == -1)
                 {
-                    return TestRegisterResult.UnknownError;
+                    return RegisterResult.UnknownError;
                 }
 
                 Entity.Invoice invoice = new Entity.Invoice
@@ -139,17 +139,17 @@ namespace ACCI_Center.Service.RegisterInformation
                     ThoiDiemThanhToan = null,
                     LoaiHoaDon = "Đăng ký thi",
                 };
-                if (invoiceDao.AddInvoice(invoice) != -1)
+                if (invoiceDao.AddInvoice(invoice) == -1)
                 {
-                    return TestRegisterResult.UnknownError;
+                    return RegisterResult.UnknownError;
                 }
 
 
-                return TestRegisterResult.Success;
+                return RegisterResult.Success;
             }
             catch (Exception ex)
             {
-                return TestRegisterResult.UnknownError;
+                return RegisterResult.UnknownError;
             }
         }
 

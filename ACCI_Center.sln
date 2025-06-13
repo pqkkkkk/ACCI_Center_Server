@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35828.75 d17.13
+VisualStudioVersion = 17.13.35828.75
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACCI_Center", "ACCI_Center\ACCI_Center.csproj", "{5AB944FB-C862-4B1B-80AE-DE7583F5BA4D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Testing", "Testing\Testing.csproj", "{EA36B94C-CC06-4F1A-B67B-BD8F25C40876}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{5AB944FB-C862-4B1B-80AE-DE7583F5BA4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5AB944FB-C862-4B1B-80AE-DE7583F5BA4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5AB944FB-C862-4B1B-80AE-DE7583F5BA4D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA36B94C-CC06-4F1A-B67B-BD8F25C40876}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA36B94C-CC06-4F1A-B67B-BD8F25C40876}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA36B94C-CC06-4F1A-B67B-BD8F25C40876}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA36B94C-CC06-4F1A-B67B-BD8F25C40876}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

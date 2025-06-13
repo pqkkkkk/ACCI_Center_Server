@@ -1,4 +1,6 @@
-﻿using ACCI_Center.Dto;
+﻿using ACCI_Center.BusinessResult;
+using ACCI_Center.Dto;
+using ACCI_Center.Dto.Request;
 using ACCI_Center.Service.RegisterInformation;
 using ACCI_Center.Service.TTDangKy;
 using Microsoft.AspNetCore.Mvc;
@@ -26,9 +28,16 @@ namespace ACCI_Center.Controllers
             return null;
         }
         [HttpPost("organization")]
-        public ActionResult<string> RegisterForOrganization()
+        public ActionResult<RegisterResult> RegisterForOrganization([FromBody] OrganizationRegisterRequest request)
         {
-            return null;
+            RegisterResult registerResult = organizationRegisterInformationService.RegisterForOrganization(request);
+
+            if(registerResult == RegisterResult.UnknownError)
+            {
+                return StatusCode(500, RegisterResult.UnknownError.ToString());
+            }
+
+            return Ok(registerResult.ToString());
         }
         [HttpGet]
         public ActionResult<PagedResult<Entity.RegisterInformation>> LoadRegisterInformations()

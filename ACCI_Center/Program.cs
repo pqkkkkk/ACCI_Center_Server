@@ -6,6 +6,7 @@ using ACCI_Center.Dao.Invoice;
 using ACCI_Center.Dao.RegisterInformation;
 using ACCI_Center.Service.ExamSchedule;
 using ACCI_Center.Service.Payment;
+using ACCI_Center.Service.RegisterInformation;
 using ACCI_Center.Service.TTDangKy;
 using ACCI_Center.Service.TTGiaHan;
 using Microsoft.Data.SqlClient;
@@ -23,6 +24,7 @@ builder.Services.AddSingleton<IExtensionInformationDao, ExtensionInformationSqlD
 builder.Services.AddSingleton<IPaymentService, PaymentService>();
 builder.Services.AddSingleton<IExamScheduleService, ExamScheduleService>();
 builder.Services.AddSingleton<IRegisterInformationService, RegisterInformationService>();
+builder.Services.AddSingleton<IOrganizationRegisterInformationService, OrganizationRegisterInformationService>();
 builder.Services.AddSingleton<IExtensionInformationService, ExtensionInformationService>();
 
 // Add services to the container.

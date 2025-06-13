@@ -11,8 +11,8 @@ namespace ACCI_Center.Service.TTDangKy
 {
     public interface IRegisterInformationService
     {
-        public TestRegisterResult RegisterForIndividual();
-        public TestRegisterResult ValidateRegisterRequest(OrganizationRegisterRequest organizationRegisterRequest);
+        public RegisterResult RegisterForIndividual();
+        public RegisterResult ValidateRegisterRequest(OrganizationRegisterRequest organizationRegisterRequest);
         public List<Entity.RegisterInformation> LoadRegisterInformation();
         public List<Entity.RegisterInformation> LoadRegisterInformation(int MaTTDangKy);
         public List<Entity.RegisterInformation> LoadRegisterInformation(int pageSize, int currentPageNumber,
