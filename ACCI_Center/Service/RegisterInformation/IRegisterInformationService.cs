@@ -11,6 +11,7 @@ namespace ACCI_Center.Service.TTDangKy
 {
     public interface IRegisterInformationService
     {
+        public int ReleaseExamRegisterForm();
         public RegisterResult RegisterForIndividual();
         public RegisterResult ValidateRegisterRequest(OrganizationRegisterRequest organizationRegisterRequest);
         public List<Entity.RegisterInformation> LoadRegisterInformation();

@@ -12,7 +12,6 @@ namespace ACCI_Center.Service.ExamSchedule
     {
         public int CreateExamSchedule(Entity.ExamSchedule examSchedule);
         public int EnterExamResult();
-        public int ReleaseExamRegisterForm();
         public int NotifyAboutReceivingExamResult();
         public List<Entity.ExamSchedule> LoadExamSchedules();
         public PagedResult<Entity.Test> LoadTests(int pageSize, int currentPageNumber, TestFilterObject testFilterObject);

@@ -39,6 +39,13 @@ namespace ACCI_Center.Controllers
 
             return Ok(registerResult.ToString());
         }
+        [HttpPut("CandidateInformation/ExamRegisterForm")]
+        public ActionResult<string> ReleaseExamRegisterForms()
+        {
+            // Logic to release exam register forms for candidates
+            // This is a placeholder implementation
+            return Ok("Exam register forms released successfully.");
+        }
         [HttpGet]
         public ActionResult<PagedResult<Entity.RegisterInformation>> LoadRegisterInformations()
         {
