@@ -1,4 +1,5 @@
-﻿using ACCI_Center.BusinessResult;
+﻿using System.Transactions;
+using ACCI_Center.BusinessResult;
 using ACCI_Center.Dao.ExamSchedule;
 using ACCI_Center.Dao.Invoice;
 using ACCI_Center.Dao.RegisterInformation;
@@ -74,6 +75,19 @@ namespace ACCI_Center.Service.RegisterInformation
 
             return true;
         }
+        public bool IsValidCandidateQuantity(int candidateCount, int tesetId)
+        {
+            Entity.Test test = examScheduleDao.GetTestById(tesetId);
+            int minimumCandidateCount = test.SoLuongThiSinhToiThieu;
+            int maximumCandidateCount = test.SoLuongThiSinhToiDa;
+
+            if (candidateCount < minimumCandidateCount || candidateCount > maximumCandidateCount)
+            {
+                return false;
+            }
+
+            return true;
+        }
         public RegisterResult ValidateRegisterRequest(OrganizationRegisterRequest organizationRegisterRequest)
         {
             if (!IsValidOrganizationInformation(organizationRegisterRequest.registerInformation))
@@ -83,6 +97,10 @@ namespace ACCI_Center.Service.RegisterInformation
             if (!IsValidTestInformation(organizationRegisterRequest.testId, organizationRegisterRequest.testName))
             {
                 return RegisterResult.InvalidTestInformation;
+            }
+            if(!IsValidCandidateQuantity(organizationRegisterRequest.candidatesInformation.Count, organizationRegisterRequest.testId))
+            {
+                return RegisterResult.CandidateQuantityTooLow;
             }
             if (!IsValidDesiredExamTime(organizationRegisterRequest.desiredExamTime, organizationRegisterRequest.testId))
             {
@@ -96,56 +114,65 @@ namespace ACCI_Center.Service.RegisterInformation
         {
             try
             {
-                RegisterResult testRegisterResult = ValidateRegisterRequest(organizationRegisterRequest);
-                if (testRegisterResult != RegisterResult.Success)
+                using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    return testRegisterResult;
+
+                    RegisterResult testRegisterResult = ValidateRegisterRequest(organizationRegisterRequest);
+                    if (testRegisterResult != RegisterResult.Success)
+                    {
+                        return testRegisterResult;
+                    }
+
+                    // Proceed with the registration process
+                    Entity.ExamSchedule examSchedule = new Entity.ExamSchedule
+                    {
+                        BaiThi = organizationRegisterRequest.testId,
+                        NgayThi = organizationRegisterRequest.desiredExamTime,
+                        SoLuongThiSinhHienTai = organizationRegisterRequest.candidatesInformation.Count,
+                        DaNhapKetQuaThi = false,
+                        DaThongBaoKetQuaThi = false,
+                        PhongThi = examScheduleDao.GetAllEmptyRoomIds(organizationRegisterRequest.desiredExamTime, organizationRegisterRequest.testId).FirstOrDefault(),
+                    };
+                    int employeeId = examScheduleDao.GetAllFreeEmployeeIds(organizationRegisterRequest.desiredExamTime, organizationRegisterRequest.testId).FirstOrDefault();
+                    int examScheduleId = examScheduleDao.AddExamSchedule(examSchedule, employeeId);
+                    if (examScheduleId == -1)
+                    {
+                        return RegisterResult.UnknownError;
+                    }
+
+                    organizationRegisterRequest.registerInformation.MaLichThi = examScheduleId;
+                    organizationRegisterRequest.registerInformation.ThoiDiemDangKy = DateTime.Now;
+                    organizationRegisterRequest.registerInformation.LoaiKhachHang = "Đơn vị";
+                    organizationRegisterRequest.registerInformation.TrangThai = "Chưa thanh toán";
+                    int registerInformationId = registerInformationDao.AddRegisterInformation(organizationRegisterRequest.registerInformation);
+                    if (registerInformationId == -1)
+                    {
+                        return RegisterResult.UnknownError;
+                    }
+
+                    if (registerInformationDao.AddCandidateInformationsOfARegisterInformation(registerInformationId, organizationRegisterRequest.candidatesInformation) == -1)
+                    {
+                        return RegisterResult.UnknownError;
+                    }
+
+                    Entity.Invoice invoice = new Entity.Invoice
+                    {
+                        MaTTDangKy = registerInformationId,
+                        TrangThai = "Chưa thanh toán",
+                        TongTien = CalculateTotalFee(organizationRegisterRequest.testId, organizationRegisterRequest.testName, organizationRegisterRequest.candidatesInformation.Count),
+                        ThoiDiemTao = DateTime.Now,
+                        ThoiDiemThanhToan = null,
+                        LoaiHoaDon = "Đăng ký thi",
+                        MaTTGiaHan = -1
+                    };
+                    if (invoiceDao.AddInvoice(invoice) == -1)
+                    {
+                        return RegisterResult.UnknownError;
+                    }
+
+                    transaction.Complete();
+                    return RegisterResult.Success;
                 }
-
-                // Proceed with the registration process
-                Entity.ExamSchedule examSchedule = new Entity.ExamSchedule
-                {
-                    BaiThi = organizationRegisterRequest.testId,
-                    NgayThi = organizationRegisterRequest.desiredExamTime,
-                    SoLuongThiSinhHienTai = organizationRegisterRequest.candidateInformations.Count,
-                    DaNhapKetQuaThi = false,
-                    DaThongBaoKetQuaThi = false,
-                    PhongThi = examScheduleDao.GetAllEmptyRoomIds(organizationRegisterRequest.desiredExamTime, organizationRegisterRequest.testId).FirstOrDefault(),
-                };
-                int employeeId = examScheduleDao.GetAllFreeEmployeeIds(organizationRegisterRequest.desiredExamTime, organizationRegisterRequest.testId).FirstOrDefault();
-                int examScheduleId = examScheduleDao.AddExamSchedule(examSchedule, employeeId);
-                if (examScheduleId == -1)
-                {
-                    return RegisterResult.UnknownError;
-                }
-
-                int registerInformationId = registerInformationDao.AddRegisterInformation(organizationRegisterRequest.registerInformation);
-                if (registerInformationId == -1)
-                {
-                    return RegisterResult.UnknownError;
-                }
-
-                if (registerInformationDao.AddCandidateInformationsOfARegisterInformation(registerInformationId, organizationRegisterRequest.candidateInformations) == -1)
-                {
-                    return RegisterResult.UnknownError;
-                }
-
-                Entity.Invoice invoice = new Entity.Invoice
-                {
-                    MaTTDangKy = registerInformationId,
-                    TrangThai = "Chưa thanh toán",
-                    TongTien = CalculateTotalFee(organizationRegisterRequest.testId, organizationRegisterRequest.testName, organizationRegisterRequest.candidateInformations.Count),
-                    ThoiDiemTao = DateTime.Now,
-                    ThoiDiemThanhToan = null,
-                    LoaiHoaDon = "Đăng ký thi",
-                };
-                if (invoiceDao.AddInvoice(invoice) == -1)
-                {
-                    return RegisterResult.UnknownError;
-                }
-
-
-                return RegisterResult.Success;
             }
             catch (Exception ex)
             {
