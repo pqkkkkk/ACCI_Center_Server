@@ -4,6 +4,7 @@ using ACCI_Center.Dao.ExamSchedule;
 using ACCI_Center.Dao.Invoice;
 using ACCI_Center.Dao.RegisterInformation;
 using ACCI_Center.Dto.Request;
+using ACCI_Center.Dto.Response;
 
 namespace ACCI_Center.Service.RegisterInformation
 {
@@ -110,20 +111,29 @@ namespace ACCI_Center.Service.RegisterInformation
             return RegisterResult.Success;
 
         }
-        public RegisterResult RegisterForOrganization(OrganizationRegisterRequest organizationRegisterRequest)
+        public OrganizationRegisterResponse RegisterForOrganization(OrganizationRegisterRequest organizationRegisterRequest)
         {
             try
             {
                 using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-
+                    // Validate the registration request
                     RegisterResult testRegisterResult = ValidateRegisterRequest(organizationRegisterRequest);
                     if (testRegisterResult != RegisterResult.Success)
                     {
-                        return testRegisterResult;
+                        return new OrganizationRegisterResponse
+                        {
+                            registerInformation = organizationRegisterRequest.registerInformation,
+                            candidatesInformation = organizationRegisterRequest.candidatesInformation,
+                            test = null,
+                            examSchedule = null,
+                            invoice = null,
+                            registerResult = testRegisterResult,
+                            statusCode = 400
+                        };
                     }
 
-                    // Proceed with the registration process
+                    // Add exam schedule record
                     Entity.ExamSchedule examSchedule = new Entity.ExamSchedule
                     {
                         BaiThi = organizationRegisterRequest.testId,
@@ -137,9 +147,19 @@ namespace ACCI_Center.Service.RegisterInformation
                     int examScheduleId = examScheduleDao.AddExamSchedule(examSchedule, employeeId);
                     if (examScheduleId == -1)
                     {
-                        return RegisterResult.UnknownError;
+                        return new OrganizationRegisterResponse
+                        {
+                            registerInformation = organizationRegisterRequest.registerInformation,
+                            candidatesInformation = organizationRegisterRequest.candidatesInformation,
+                            test = null,
+                            examSchedule = null,
+                            invoice = null,
+                            registerResult = RegisterResult.UnknownError,
+                            statusCode = 500
+                        };
                     }
 
+                    // Add register information record
                     organizationRegisterRequest.registerInformation.MaLichThi = examScheduleId;
                     organizationRegisterRequest.registerInformation.ThoiDiemDangKy = DateTime.Now;
                     organizationRegisterRequest.registerInformation.LoaiKhachHang = "Đơn vị";
@@ -147,14 +167,31 @@ namespace ACCI_Center.Service.RegisterInformation
                     int registerInformationId = registerInformationDao.AddRegisterInformation(organizationRegisterRequest.registerInformation);
                     if (registerInformationId == -1)
                     {
-                        return RegisterResult.UnknownError;
+                        return new OrganizationRegisterResponse
+                        {
+                            registerInformation = organizationRegisterRequest.registerInformation,
+                            candidatesInformation = organizationRegisterRequest.candidatesInformation,
+                            test = null,
+                            examSchedule = null,
+                            invoice = null,
+                            registerResult = RegisterResult.UnknownError,
+                            statusCode = 500
+                        };
                     }
+                    organizationRegisterRequest.registerInformation.MaTTDangKy = registerInformationId;
 
                     if (registerInformationDao.AddCandidateInformationsOfARegisterInformation(registerInformationId, organizationRegisterRequest.candidatesInformation) == -1)
                     {
-                        return RegisterResult.UnknownError;
+                        return new OrganizationRegisterResponse {
+                            registerInformation = organizationRegisterRequest.registerInformation,
+                            candidatesInformation = organizationRegisterRequest.candidatesInformation,
+                            test = null,
+                            examSchedule = null, invoice = null,
+                            registerResult = RegisterResult.UnknownError,
+                            statusCode = 500 };
                     }
 
+                    // Add invoice record
                     Entity.Invoice invoice = new Entity.Invoice
                     {
                         MaTTDangKy = registerInformationId,
@@ -167,16 +204,45 @@ namespace ACCI_Center.Service.RegisterInformation
                     };
                     if (invoiceDao.AddInvoice(invoice) == -1)
                     {
-                        return RegisterResult.UnknownError;
+                        return new OrganizationRegisterResponse
+                        {
+                            registerInformation = organizationRegisterRequest.registerInformation,
+                            candidatesInformation = organizationRegisterRequest.candidatesInformation,
+                            test = null,
+                            examSchedule = null,
+                            invoice = null,
+                            registerResult = RegisterResult.UnknownError,
+                            statusCode = 500
+                        };
                     }
 
+                    var test = examScheduleDao.GetTestById(organizationRegisterRequest.testId);
+                    // Commit the transaction
                     transaction.Complete();
-                    return RegisterResult.Success;
+                    return new OrganizationRegisterResponse
+                    {
+                        registerInformation = organizationRegisterRequest.registerInformation,
+                        candidatesInformation = organizationRegisterRequest.candidatesInformation,
+                        test = test,
+                        examSchedule = examSchedule,
+                        invoice = invoice,
+                        registerResult = RegisterResult.Success,
+                        statusCode = 200
+                    };
                 }
             }
             catch (Exception ex)
             {
-                return RegisterResult.UnknownError;
+                return new OrganizationRegisterResponse
+                {
+                    registerInformation = organizationRegisterRequest.registerInformation,
+                    candidatesInformation = organizationRegisterRequest.candidatesInformation,
+                    test = null,
+                    examSchedule = null,
+                    invoice = null,
+                    registerResult = RegisterResult.UnknownError,
+                    statusCode = 500
+                };
             }
         }
 

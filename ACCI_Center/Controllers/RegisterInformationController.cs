@@ -1,6 +1,7 @@
 ﻿using ACCI_Center.BusinessResult;
 using ACCI_Center.Dto;
 using ACCI_Center.Dto.Request;
+using ACCI_Center.Dto.Response;
 using ACCI_Center.Entity;
 using ACCI_Center.Helper;
 using ACCI_Center.Service.RegisterInformation;
@@ -45,21 +46,21 @@ namespace ACCI_Center.Controllers
             return null;
         }
         [HttpPost("organization")]
-        public ActionResult<RegisterResult> RegisterForOrganization([FromForm] OrganizationRegisterRequest request)
+        public ActionResult<OrganizationRegisterResponse> RegisterForOrganization([FromForm] OrganizationRegisterRequest request)
         {
             IFormFile candidatesInformationFile = request.candidateInformationsFile;
             List<CandidateInformation> candidatesInformation = ExcelReaderHelper.ReadExcelFileFormIFormFile<CandidateInformation>(candidatesInformationFile, candidateInformationMapper);
 
             request.candidatesInformation = candidatesInformation;
 
-            RegisterResult registerResult = organizationRegisterInformationService.RegisterForOrganization(request);
+            OrganizationRegisterResponse registerResponse = organizationRegisterInformationService.RegisterForOrganization(request);
 
-            if(registerResult == RegisterResult.UnknownError)
+            if(registerResponse.registerResult == RegisterResult.UnknownError)
             {
-                return StatusCode(500, RegisterResult.UnknownError.ToString());
+                return StatusCode(registerResponse.statusCode, registerResponse);
             }
 
-            return Ok(registerResult.ToString());
+            return Ok(registerResponse);
         }
         [HttpPut("CandidateInformation/ExamRegisterForm")]
         public ActionResult<string> ReleaseExamRegisterForms()

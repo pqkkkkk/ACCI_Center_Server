@@ -61,7 +61,7 @@ namespace Testing
 
             var result = _service.RegisterForOrganization(request);
 
-            Assert.AreEqual(RegisterResult.InvalidOrganizationInformation, result);
+            Assert.AreEqual(RegisterResult.InvalidOrganizationInformation, result.registerResult);
         }
 
         [TestMethod]
@@ -74,7 +74,7 @@ namespace Testing
 
             var result = _service.RegisterForOrganization(request);
 
-            Assert.AreEqual(RegisterResult.InvalidTestInformation, result);
+            Assert.AreEqual(RegisterResult.InvalidTestInformation, result.registerResult);
         }
 
         [TestMethod]
@@ -94,7 +94,7 @@ namespace Testing
 
             var result = _service.RegisterForOrganization(request);
 
-            Assert.AreEqual(RegisterResult.CandidateQuantityTooLow, result);
+            Assert.AreEqual(RegisterResult.CandidateQuantityTooLow, result.registerResult);
         }
 
         [TestMethod]
@@ -117,7 +117,7 @@ namespace Testing
 
             var result = _service.RegisterForOrganization(request);
 
-            Assert.AreEqual(RegisterResult.NoAvailableTimeSlot, result);
+            Assert.AreEqual(RegisterResult.NoAvailableTimeSlot, result.registerResult);
         }
 
         [TestMethod]
@@ -140,7 +140,7 @@ namespace Testing
 
             var result = _service.RegisterForOrganization(request);
 
-            Assert.AreEqual(RegisterResult.NoAvailableTimeSlot, result);
+            Assert.AreEqual(RegisterResult.NoAvailableTimeSlot, result.registerResult);
         }
 
         [TestMethod]
@@ -165,7 +165,7 @@ namespace Testing
 
             var result = _service.RegisterForOrganization(request);
 
-            Assert.AreEqual(RegisterResult.UnknownError, result);
+            Assert.AreEqual(RegisterResult.UnknownError, result.registerResult);
         }
 
         [TestMethod]
@@ -192,7 +192,7 @@ namespace Testing
 
             var result = _service.RegisterForOrganization(request);
 
-            Assert.AreEqual(RegisterResult.UnknownError, result);
+            Assert.AreEqual(RegisterResult.UnknownError, result.registerResult);
         }
 
         [TestMethod]
@@ -221,7 +221,7 @@ namespace Testing
 
             var result = _service.RegisterForOrganization(request);
 
-            Assert.AreEqual(RegisterResult.UnknownError, result);
+            Assert.AreEqual(RegisterResult.UnknownError, result.registerResult);
         }
 
         [TestMethod]
@@ -252,7 +252,7 @@ namespace Testing
 
             var result = _service.RegisterForOrganization(request);
 
-            Assert.AreEqual(RegisterResult.UnknownError, result);
+            Assert.AreEqual(RegisterResult.UnknownError, result.registerResult);
         }
 
         [TestMethod]
@@ -284,7 +284,7 @@ namespace Testing
 
             var result = _service.RegisterForOrganization(request);
 
-            Assert.AreEqual(RegisterResult.Success, result);
+            Assert.AreEqual(RegisterResult.Success, result.registerResult);
         }
     }
 }

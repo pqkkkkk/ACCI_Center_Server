@@ -1,5 +1,6 @@
 ﻿using ACCI_Center.BusinessResult;
 using ACCI_Center.Dto.Request;
+using ACCI_Center.Dto.Response;
 
 namespace ACCI_Center.Service.RegisterInformation
 {
@@ -9,7 +10,7 @@ namespace ACCI_Center.Service.RegisterInformation
         bool IsValidTestInformation(int testId, string testName);
         bool IsValidDesiredExamTime(DateTime desiredExamTime, int testId);
         RegisterResult ValidateRegisterRequest(OrganizationRegisterRequest organizationRegisterRequest);
-        RegisterResult RegisterForOrganization(OrganizationRegisterRequest organizationRegisterRequest);
+        OrganizationRegisterResponse RegisterForOrganization(OrganizationRegisterRequest organizationRegisterRequest);
         double CalculateTotalFee(int testId, string testName, int candidateCount);
     }
 }
