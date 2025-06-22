@@ -143,5 +143,41 @@ namespace ACCI_Center.Dao.RegisterInformation
 
             return rowsAffected;
         }
+        public void UpdateCandidateStatus(int mathisinh, bool DaGuiPhieuDuThi)
+       {
+           string sql = """
+               UPDATE TTHISINH
+               SET DaGuiPhieuDuThi = @DaGuiPhieuDuThi
+               WHERE MaTTThiSinh = @mathisinh
+           """;
+
+
+           using (var command = dbConnection.CreateCommand())
+           {
+               if (dbConnection.State != System.Data.ConnectionState.Open)
+               {
+                   dbConnection.Open();
+               }
+               command.CommandText = sql;
+
+
+               var maThiSinhParam = command.CreateParameter();
+               maThiSinhParam.ParameterName = "@mathisinh";
+               maThiSinhParam.Value = mathisinh;
+               command.Parameters.Add(maThiSinhParam);
+
+
+               var daGuiPhieuDuThiParam = command.CreateParameter();
+               daGuiPhieuDuThiParam.ParameterName = "@DaGuiPhieuDuThi";
+               daGuiPhieuDuThiParam.Value = DaGuiPhieuDuThi;
+               command.Parameters.Add(daGuiPhieuDuThiParam);
+
+
+               command.ExecuteNonQuery();
+           }
+
+
+       }
+
     }
 }

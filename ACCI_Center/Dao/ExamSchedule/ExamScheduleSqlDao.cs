@@ -8,6 +8,7 @@ using ACCI_Center.Configuraion;
 using ACCI_Center.Dto;
 using ACCI_Center.Entity;
 using ACCI_Center.FilterField;
+using System.Data;
 
 namespace ACCI_Center.Dao.ExamSchedule
 {
@@ -197,7 +198,7 @@ namespace ACCI_Center.Dao.ExamSchedule
                         		or (DATEADD(minute, bt.ThoiGianThi, lt.NgayThi) >= @desiredStartExamTime and DATEADD(minute, bt.ThoiGianThi, lt.NgayThi) <= @desiredStartExamTime);
                         """;
 
-            using(var command = dbConnection.CreateCommand())
+            using (var command = dbConnection.CreateCommand())
             {
                 command.CommandText = sql;
                 var startExamTimeParam = command.CreateParameter();
@@ -218,7 +219,7 @@ namespace ACCI_Center.Dao.ExamSchedule
                 }
 
                 return emptyRoomIds;
-            } 
+            }
         }
 
         public List<int> GetAllFreeEmployeeIds(DateTime desiredExamTime, int testId)
@@ -284,5 +285,81 @@ namespace ACCI_Center.Dao.ExamSchedule
                 }
             }
         }
+        public List<Entity.ExamSchedule> GetExamSchedulesForNext2Week()
+       {
+           List<Entity.ExamSchedule> examSchedule = new List<Entity.ExamSchedule>();
+           string sql = "SELECT * FROM LICHTHI WHERE NgayThi BETWEEN GETDATE() AND DATEADD(WEEK, 2, GETDATE()) ";
+           using (var command = dbConnection.CreateCommand())
+           {
+               if (dbConnection.State != ConnectionState.Open)
+               {
+                   dbConnection.Open();
+               }
+               command.CommandText = sql;
+               using (var reader = command.ExecuteReader())
+               {
+                   while (reader.Read())
+                   {
+                       var schedule = new Entity.ExamSchedule
+                       {
+                           MaLichThi = reader.GetInt32(reader.GetOrdinal("MaLichThi")),
+                           BaiThi = reader.GetInt32(reader.GetOrdinal("BaiThi")),
+                           NgayThi = reader.GetDateTime(reader.GetOrdinal("NgayThi")),
+                           SoLuongThiSinhHienTai = reader.GetInt32(reader.GetOrdinal("SoLuongThiSinhHienTai")),
+                           DaNhapKetQuaThi = reader.GetBoolean(reader.GetOrdinal("DaNhapKetQuaThi")),
+                           DaThongBaoKetQuaThi = reader.GetBoolean(reader.GetOrdinal("DaThongBaoKetQuaThi")),
+                           PhongThi = reader.GetInt32(reader.GetOrdinal("PhongThi"))
+                       };
+                       examSchedule.Add(schedule);
+                   }
+
+
+               }
+           }
+           return examSchedule;
+       }
+      
+       public List<Entity.CandidateInformation> GetCandidatesByExamScheduleId(int id)
+       {
+           List<Entity.CandidateInformation> candidates = new List<Entity.CandidateInformation>();
+           string sql = """
+               SELECT ts.*
+               FROM TThiSinh ts JOIN TTDangKy dk on ts.MaTTDangKy = dk.MaTTDangKy
+               WHERE dk.MaLichThi = @id
+           """;
+            using (var command = dbConnection.CreateCommand())
+            {
+                if (dbConnection.State != ConnectionState.Open)
+                {
+                    dbConnection.Open();
+                }
+                command.CommandText = sql;
+                var idParam = command.CreateParameter();
+                idParam.ParameterName = "@id";
+                idParam.Value = id;
+                command.Parameters.Add(idParam);
+
+
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var candidate = new Entity.CandidateInformation
+                        {
+                            MaTTThiSinh = reader.GetInt32(reader.GetOrdinal("MaTTThiSinh")),
+                            MaTTDangKy = reader.GetInt32(reader.GetOrdinal("MaTTDangKy")),
+                            HoTen = reader.GetString(reader.GetOrdinal("HoTen")),
+                            SDT = reader.GetString(reader.GetOrdinal("SDT")),
+                            Email = reader.GetString(reader.GetOrdinal("Email")),
+                            DaNhanChungChi = reader.GetBoolean(reader.GetOrdinal("DaNhanChungChi")),
+                            DaGuiPhieuDuThi = reader.GetBoolean(reader.GetOrdinal("DaGuiPhieuDuThi"))
+                        };
+                        candidates.Add(candidate);
+                    }
+                }
+            }
+       return candidates;
+       }
+
     }
 }
