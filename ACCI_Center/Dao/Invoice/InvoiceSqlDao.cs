@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
@@ -29,7 +30,7 @@ namespace ACCI_Center.Dao.Invoice
 
             var thoiDiemThanhToanParam = dbConnection.CreateCommand().CreateParameter();
             thoiDiemThanhToanParam.ParameterName = "@ThoiDiemThanhToan";
-            thoiDiemThanhToanParam.Value = invoice.ThoiDiemThanhToan;
+            thoiDiemThanhToanParam.Value = invoice.ThoiDiemThanhToan ?? (object)DBNull.Value;
             parameters.Add(thoiDiemThanhToanParam);
 
             var tongTienParam = dbConnection.CreateCommand().CreateParameter();
@@ -54,7 +55,14 @@ namespace ACCI_Center.Dao.Invoice
 
             var maTTGiaHanParam = dbConnection.CreateCommand().CreateParameter();
             maTTGiaHanParam.ParameterName = "@MaTTGiaHan";
-            maTTGiaHanParam.Value = invoice.MaTTGiaHan;
+            if (invoice.MaTTGiaHan == 0)
+            {
+                maTTGiaHanParam.Value = DBNull.Value;
+            }
+            else
+            {
+                maTTGiaHanParam.Value = invoice.MaTTGiaHan;
+            }
             parameters.Add(maTTGiaHanParam);
 
             return parameters.ToArray();
@@ -70,6 +78,10 @@ namespace ACCI_Center.Dao.Invoice
             using (var command = dbConnection.CreateCommand())
             {
                 command.CommandText = sql;
+                if (dbConnection.State != ConnectionState.Open)
+                {
+                    dbConnection.Open();
+                }
                 command.Parameters.AddRange(parameters);
 
                 var result =  command.ExecuteScalar();

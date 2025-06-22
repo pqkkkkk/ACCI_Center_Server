@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
@@ -83,6 +84,10 @@ namespace ACCI_Center.Dao.RegisterInformation
             using (var command = dbConnection.CreateCommand())
             {
                 command.CommandText = sql;
+                if (dbConnection.State != ConnectionState.Open)
+                {
+                    dbConnection.Open();
+                }
                 command.Parameters.AddRange(parameters);
                 var result = command.ExecuteScalar();
                 return result != null ? Convert.ToInt32(result) : -1;
@@ -92,7 +97,7 @@ namespace ACCI_Center.Dao.RegisterInformation
         public int AddCandidateInformationsOfARegisterInformation(int maTTDangKy, List<CandidateInformation> candidateInformations)
         {
             string sql = """
-                INSERT INTO TTTTHISINH (
+                INSERT INTO TTHISINH (
                     MaTTDangKy, HoTen, SDT, Email, DaNhanChungChi, DaGuiPhieuDuThi
                 ) VALUES (
                     @MaTTDangKy, @HoTen, @SDT, @Email, @DaNhanChungChi, @DaGuiPhieuDuThi
@@ -106,7 +111,10 @@ namespace ACCI_Center.Dao.RegisterInformation
                 using (var command = dbConnection.CreateCommand())
                 {
                     command.CommandText = sql;
-
+                    if (dbConnection.State != ConnectionState.Open)
+                    {
+                        dbConnection.Open();
+                    }
                     var maTTDangKyParam = command.CreateParameter();
                     maTTDangKyParam.ParameterName = "@MaTTDangKy";
                     maTTDangKyParam.Value = maTTDangKy;
