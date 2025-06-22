@@ -29,7 +29,7 @@ namespace ACCI_Center.Dao.Invoice
 
             var thoiDiemThanhToanParam = dbConnection.CreateCommand().CreateParameter();
             thoiDiemThanhToanParam.ParameterName = "@ThoiDiemThanhToan";
-            thoiDiemThanhToanParam.Value = invoice.ThoiDiemThanhToan;
+            thoiDiemThanhToanParam.Value = invoice.ThoiDiemThanhToan ?? (object)DBNull.Value;
             parameters.Add(thoiDiemThanhToanParam);
 
             var tongTienParam = dbConnection.CreateCommand().CreateParameter();
@@ -62,7 +62,7 @@ namespace ACCI_Center.Dao.Invoice
         public int AddInvoice(Entity.Invoice invoice)
         {
             string sql = """
-                INSERT INTO HoaDon (ThoiDiemTao, ThoiDiemThanhToan, TongTien, TrangThai, LoaiHoaDon, MaTTDangKy, MaTTGiaHan)
+                INSERT INTO ACCI_Center.dbo.HOADON (ThoiDiemTao, ThoiDiemThanhToan, TongTien, TrangThai, LoaiHoaDon, MaTTDangKy, MaTTGiaHan)
                 VALUES (@ThoiDiemTao, @ThoiDiemThanhToan, @TongTien, @TrangThai, @LoaiHoaDon, @MaTTDangKy, @MaTTGiaHan);
                 SELECT CAST(SCOPE_IDENTITY() AS int);
                 """;
@@ -72,7 +72,9 @@ namespace ACCI_Center.Dao.Invoice
                 command.CommandText = sql;
                 command.Parameters.AddRange(parameters);
 
-                var result =  command.ExecuteScalar();
+                dbConnection.Open();
+                var result = command.ExecuteScalar();
+                dbConnection.Close();
                 return result != null ? Convert.ToInt32(result) : -1;
             }
         }

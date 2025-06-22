@@ -32,9 +32,24 @@ namespace ACCI_Center.Service.TTGiaHan
             throw new NotImplementedException();
         }
 
-        public int ExtendExamTimePaid(Entity.ExtensionInformation TTGiaHan)
+        public int ExtendExamTimePaid(Entity.ExtensionInformation TTGiaHan, int MaLichThiMoi)
         {
-            throw new NotImplementedException();
+            if (TTGiaHan == null || MaLichThiMoi <= 0) { return 0; }
+            int maTTGiaHan = TTGiaHanDao.AddExtensionInformation(TTGiaHan);
+            if (maTTGiaHan <= 0) { return 0; }
+
+            Invoice invoice = new Invoice
+            {
+                ThoiDiemTao = DateTime.Now,
+                TongTien = TTGiaHan.PhiGiaHan,
+                TrangThai = "Chưa thanh toán",
+                LoaiHoaDon = "Gia hạn thi",
+                MaTTDangKy = TTGiaHan.MaTTDangKy,
+                MaTTGiaHan = maTTGiaHan
+            };
+            if (TTDangKyDao.UpdateExamSchedule(TTGiaHan.MaTTDangKy, MaLichThiMoi) > 0
+                && HoaDonDao.AddInvoice(invoice) > 0) return 1;
+            return 0;
         }
 
         public List<Entity.ExtensionInformation> LoadExtendInformation()
@@ -44,7 +59,7 @@ namespace ACCI_Center.Service.TTGiaHan
 
         public List<ExtensionInformation> LoadExtendInformation(int pageSize, int currentPageNumber, ExtensionInformationFilterObject extensionInformationFilterObject)
         {
-            throw new NotImplementedException();
+            return TTGiaHanDao.LoadExtendInformation(pageSize, currentPageNumber, extensionInformationFilterObject);
         }
 
         public Entity.ExtensionInformation LoadExtendInformationById(int maTTGiaHan)
