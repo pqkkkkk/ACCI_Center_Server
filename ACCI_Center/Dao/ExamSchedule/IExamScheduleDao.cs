@@ -22,5 +22,8 @@ namespace ACCI_Center.Dao.ExamSchedule
         public Entity.Test GetTestById(int testId);
         public List<int> GetAllEmptyRoomIds(DateTime desiredExamTime, int testId);
         public List<int> GetAllFreeEmployeeIds(DateTime desiredExamTime, int testId);
+        public List<Entity.ExamSchedule> GetExamSchedulesForNext2Week();
+       public List<Entity.CandidateInformation> GetCandidatesByExamScheduleId(int id);
+
     }
 }
