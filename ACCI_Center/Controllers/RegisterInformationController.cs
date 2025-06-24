@@ -41,9 +41,14 @@ namespace ACCI_Center.Controllers
             this.registerInformationService = registerInformationService;
         }
         [HttpPost("individual")]
-        public ActionResult<string> RegisterForIndividual()
+        public ActionResult<string> RegisterForIndividual([FromBody] IndividualRegisterRequest request)
         {
-            return null;
+            RegisterResult registerResult = registerInformationService.RegisterForIndividual(request);
+            if (registerResult == RegisterResult.UnknownError)
+            {
+                return StatusCode(500, RegisterResult.UnknownError.ToString());
+            }
+            return Ok(registerResult.ToString());
         }
         [HttpPost("organization")]
         public ActionResult<OrganizationRegisterResponse> RegisterForOrganization([FromForm] OrganizationRegisterRequest request)

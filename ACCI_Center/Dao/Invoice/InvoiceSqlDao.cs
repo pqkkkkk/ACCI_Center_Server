@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
@@ -54,7 +55,7 @@ namespace ACCI_Center.Dao.Invoice
 
             var maTTGiaHanParam = dbConnection.CreateCommand().CreateParameter();
             maTTGiaHanParam.ParameterName = "@MaTTGiaHan";
-            maTTGiaHanParam.Value = invoice.MaTTGiaHan == -1 ? DBNull.Value : invoice.MaTTGiaHan;
+            maTTGiaHanParam.Value = invoice.MaTTGiaHan == -1 || invoice.MaTTGiaHan == 0 ? DBNull.Value : invoice.MaTTGiaHan;
             parameters.Add(maTTGiaHanParam);
 
             return parameters.ToArray();
@@ -68,6 +69,7 @@ namespace ACCI_Center.Dao.Invoice
                 VALUES (@ThoiDiemTao, @ThoiDiemThanhToan, @TongTien, @TrangThai, @LoaiHoaDon, @MaTTDangKy, @MaTTGiaHan);
                 SELECT CAST(SCOPE_IDENTITY() AS int);
                 """;
+                
                 DbParameter[] parameters = BuildParametersForAddInvoice(invoice);
 
                 if (dbConnection.State != System.Data.ConnectionState.Open)

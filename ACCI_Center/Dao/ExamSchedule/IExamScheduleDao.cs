@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ACCI_Center.FilterField;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using ACCI_Center.Dto.Reponse;
 
 namespace ACCI_Center.Dao.ExamSchedule
 {
@@ -22,8 +23,10 @@ namespace ACCI_Center.Dao.ExamSchedule
         public Entity.Test GetTestById(int testId);
         public List<int> GetAllEmptyRoomIds(DateTime desiredExamTime, int testId);
         public List<int> GetAllFreeEmployeeIds(DateTime desiredExamTime, int testId);
+        public List<AvailableExamScheduleReponse> GetAvailableExamSchedules();
+        public int GetTestIdByExamScheduleId(int examScheduleId);
+        public bool UpdateQuantityOfExamSchedule(int examScheduleId, int quantity);
         public List<Entity.ExamSchedule> GetExamSchedulesForNext2Week();
-       public List<Entity.CandidateInformation> GetCandidatesByExamScheduleId(int id);
-
+        public List<Entity.CandidateInformation> GetCandidatesByExamScheduleId(int id);
     }
 }

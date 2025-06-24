@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
@@ -108,6 +109,7 @@ namespace ACCI_Center.Dao.RegisterInformation
 
         public int AddCandidateInformationsOfARegisterInformation(int maTTDangKy, List<CandidateInformation> candidateInformations)
         {
+
             try
             {
                 string sql = """

@@ -1,4 +1,4 @@
-using ACCI_Center.Configuraion;
+﻿using ACCI_Center.Configuraion;
 using ACCI_Center.Configuration;
 using ACCI_Center.Dao.ExamSchedule;
 using ACCI_Center.Dao.ExtensionInformation;
@@ -36,23 +36,16 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
-});
 
 var app = builder.Build();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseCors(builder =>
 {
     builder.AllowAnyOrigin()
