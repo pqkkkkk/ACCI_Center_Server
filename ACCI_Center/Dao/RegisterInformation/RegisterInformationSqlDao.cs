@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -70,7 +70,9 @@ namespace ACCI_Center.Dao.RegisterInformation
         }
         public int AddRegisterInformation(Entity.RegisterInformation registerInformation)
         {
-            string sql = """
+            try
+            {
+                string sql = """
                 INSERT INTO TTDANGKY (
                     HoTen, SDT, Email, DiaChi, ThoiDiemDangKy, MaLichThi, TrangThai, LoaiKhachHang
                 ) VALUES (
@@ -78,25 +80,39 @@ namespace ACCI_Center.Dao.RegisterInformation
                 );
                 SELECT CAST(SCOPE_IDENTITY() AS int);
                 """;
+                DbParameter[] parameters = buildParametersForRegisterInformation(registerInformation);
 
-            DbParameter[] parameters = buildParametersForRegisterInformation(registerInformation);
-
-            using (var command = dbConnection.CreateCommand())
-            {
-                command.CommandText = sql;
-                if (dbConnection.State != ConnectionState.Open)
+                if (dbConnection.State != System.Data.ConnectionState.Open)
                 {
                     dbConnection.Open();
                 }
-                command.Parameters.AddRange(parameters);
-                var result = command.ExecuteScalar();
-                return result != null ? Convert.ToInt32(result) : -1;
+                using (var command = dbConnection.CreateCommand())
+                {
+                    command.CommandText = sql;
+                    command.Parameters.AddRange(parameters);
+                    var result = command.ExecuteScalar();
+                    return result != null ? Convert.ToInt32(result) : -1;
+                }
+            }
+            catch(Exception ex)
+            {
+                throw new Exception("Error while adding register information", ex);
+            }
+            finally
+            {
+                if (dbConnection.State == System.Data.ConnectionState.Open)
+                {
+                    dbConnection.Close();
+                }
             }
         }
 
         public int AddCandidateInformationsOfARegisterInformation(int maTTDangKy, List<CandidateInformation> candidateInformations)
         {
-            string sql = """
+
+            try
+            {
+                string sql = """
                 INSERT INTO TTHISINH (
                     MaTTDangKy, HoTen, SDT, Email, DaNhanChungChi, DaGuiPhieuDuThi
                 ) VALUES (
@@ -104,52 +120,129 @@ namespace ACCI_Center.Dao.RegisterInformation
                 );
                 """;
 
-            int rowsAffected = 0;
-
-            foreach (var candidate in candidateInformations)
-            {
-                using (var command = dbConnection.CreateCommand())
+                int rowsAffected = 0;
+                if(dbConnection.State != System.Data.ConnectionState.Open)
                 {
-                    command.CommandText = sql;
-                    if (dbConnection.State != ConnectionState.Open)
+                    dbConnection.Open();
+                }
+                foreach (var candidate in candidateInformations)
+                {
+                    using (var command = dbConnection.CreateCommand())
                     {
-                        dbConnection.Open();
+                        command.CommandText = sql;
+
+                        var maTTDangKyParam = command.CreateParameter();
+                        maTTDangKyParam.ParameterName = "@MaTTDangKy";
+                        maTTDangKyParam.Value = maTTDangKy;
+                        command.Parameters.Add(maTTDangKyParam);
+
+                        var hoTenParam = command.CreateParameter();
+                        hoTenParam.ParameterName = "@HoTen";
+                        hoTenParam.Value = candidate.HoTen;
+                        command.Parameters.Add(hoTenParam);
+
+                        var sdtParam = command.CreateParameter();
+                        sdtParam.ParameterName = "@SDT";
+                        sdtParam.Value = candidate.SDT;
+                        command.Parameters.Add(sdtParam);
+
+                        var emailParam = command.CreateParameter();
+                        emailParam.ParameterName = "@Email";
+                        emailParam.Value = candidate.Email;
+                        command.Parameters.Add(emailParam);
+
+                        var daNhanChungChiParam = command.CreateParameter();
+                        daNhanChungChiParam.ParameterName = "@DaNhanChungChi";
+                        daNhanChungChiParam.Value = candidate.DaNhanChungChi;
+                        command.Parameters.Add(daNhanChungChiParam);
+
+                        var daGuiPhieuDuThiParam = command.CreateParameter();
+                        daGuiPhieuDuThiParam.ParameterName = "@DaGuiPhieuDuThi";
+                        daGuiPhieuDuThiParam.Value = candidate.DaGuiPhieuDuThi;
+                        command.Parameters.Add(daGuiPhieuDuThiParam);
+
+                        rowsAffected += command.ExecuteNonQuery();
                     }
-                    var maTTDangKyParam = command.CreateParameter();
-                    maTTDangKyParam.ParameterName = "@MaTTDangKy";
-                    maTTDangKyParam.Value = maTTDangKy;
-                    command.Parameters.Add(maTTDangKyParam);
+                }
 
-                    var hoTenParam = command.CreateParameter();
-                    hoTenParam.ParameterName = "@HoTen";
-                    hoTenParam.Value = candidate.HoTen;
-                    command.Parameters.Add(hoTenParam);
-
-                    var sdtParam = command.CreateParameter();
-                    sdtParam.ParameterName = "@SDT";
-                    sdtParam.Value = candidate.SDT;
-                    command.Parameters.Add(sdtParam);
-
-                    var emailParam = command.CreateParameter();
-                    emailParam.ParameterName = "@Email";
-                    emailParam.Value = candidate.Email;
-                    command.Parameters.Add(emailParam);
-
-                    var daNhanChungChiParam = command.CreateParameter();
-                    daNhanChungChiParam.ParameterName = "@DaNhanChungChi";
-                    daNhanChungChiParam.Value = candidate.DaNhanChungChi;
-                    command.Parameters.Add(daNhanChungChiParam);
-
-                    var daGuiPhieuDuThiParam = command.CreateParameter();
-                    daGuiPhieuDuThiParam.ParameterName = "@DaGuiPhieuDuThi";
-                    daGuiPhieuDuThiParam.Value = candidate.DaGuiPhieuDuThi;
-                    command.Parameters.Add(daGuiPhieuDuThiParam);
-
-                    rowsAffected += command.ExecuteNonQuery();
+                return rowsAffected;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error while adding candidate information", ex);
+            }
+            finally
+            {
+                if (dbConnection.State == System.Data.ConnectionState.Open)
+                {
+                    dbConnection.Close();
                 }
             }
+        }
+        public int UpdateExamSchedule(int maTTDangKy, int maLichThi)
+        {
+            string sql = """
+                UPDATE ACCI_Center.dbo.TTDANGKY
+                SET MaLichThi = @MaLichThi
+                WHERE MaTTDangKy = @MaTTDangKy;
+                """;
 
+            int rowsAffected = 0;
+
+            using (var command = dbConnection.CreateCommand())
+            {
+                command.CommandText = sql;
+
+                var maTTDangKyParam = command.CreateParameter();
+                maTTDangKyParam.ParameterName = "@MaTTDangKy";
+                maTTDangKyParam.Value = maTTDangKy;
+                command.Parameters.Add(maTTDangKyParam);
+
+                var maLichThiParam = command.CreateParameter();
+                maLichThiParam.ParameterName = "@MaLichThi";
+                maLichThiParam.Value = maLichThi;
+                command.Parameters.Add(maLichThiParam);
+
+                dbConnection.Open();
+                rowsAffected = command.ExecuteNonQuery();
+                dbConnection.Close();
+            }
             return rowsAffected;
         }
+        public void UpdateCandidateStatus(int mathisinh, bool DaGuiPhieuDuThi)
+       {
+           string sql = """
+               UPDATE TTHISINH
+               SET DaGuiPhieuDuThi = @DaGuiPhieuDuThi
+               WHERE MaTTThiSinh = @mathisinh
+           """;
+
+
+           using (var command = dbConnection.CreateCommand())
+           {
+               if (dbConnection.State != System.Data.ConnectionState.Open)
+               {
+                   dbConnection.Open();
+               }
+               command.CommandText = sql;
+
+
+               var maThiSinhParam = command.CreateParameter();
+               maThiSinhParam.ParameterName = "@mathisinh";
+               maThiSinhParam.Value = mathisinh;
+               command.Parameters.Add(maThiSinhParam);
+
+
+               var daGuiPhieuDuThiParam = command.CreateParameter();
+               daGuiPhieuDuThiParam.ParameterName = "@DaGuiPhieuDuThi";
+               daGuiPhieuDuThiParam.Value = DaGuiPhieuDuThi;
+               command.Parameters.Add(daGuiPhieuDuThiParam);
+
+
+               command.ExecuteNonQuery();
+           }
+
+
+       }
     }
 }

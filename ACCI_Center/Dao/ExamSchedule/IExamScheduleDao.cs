@@ -26,5 +26,7 @@ namespace ACCI_Center.Dao.ExamSchedule
         public List<AvailableExamScheduleReponse> GetAvailableExamSchedules();
         public int GetTestIdByExamScheduleId(int examScheduleId);
         public bool UpdateQuantityOfExamSchedule(int examScheduleId, int quantity);
+        public List<Entity.ExamSchedule> GetExamSchedulesForNext2Week();
+        public List<Entity.CandidateInformation> GetCandidatesByExamScheduleId(int id);
     }
 }

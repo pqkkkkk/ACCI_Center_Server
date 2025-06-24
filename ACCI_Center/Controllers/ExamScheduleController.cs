@@ -17,7 +17,7 @@ namespace ACCI_Center.Controllers
         {
             this.examScheduleService = examScheduleService;
         }
-        [HttpGet]
+        [HttpGet("Test")]
         public ActionResult<PagedResult<Entity.Test>> GetTests(
             [FromQuery] int pageSize,
             [FromQuery] int currentPageNumber,

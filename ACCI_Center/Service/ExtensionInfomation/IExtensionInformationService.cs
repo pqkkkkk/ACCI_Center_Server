@@ -12,7 +12,7 @@ namespace ACCI_Center.Service.TTGiaHan
     {
         public ValidateExtendRequestResult ValidateExtensionRequest(int maTTDangKy, DateTime desiredExamDate);
         public int ExtendExamTimeFree(Entity.ExtensionInformation TTGiaHan);
-        public int ExtendExamTimePaid(Entity.ExtensionInformation TTGiaHan);
+        public int ExtendExamTimePaid(Entity.ExtensionInformation TTGiaHan, int MaLichThiMoi);
         public List<Entity.ExtensionInformation> LoadExtendInformation();
         public List<Entity.ExtensionInformation> LoadExtendInformation(int pageSize, int currentPageNumber,
             ExtensionInformationFilterObject extensionInformationFilterObject);

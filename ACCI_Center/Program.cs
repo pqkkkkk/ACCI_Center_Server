@@ -10,10 +10,12 @@ using ACCI_Center.Service.RegisterInformation;
 using ACCI_Center.Service.TTDangKy;
 using ACCI_Center.Service.TTGiaHan;
 using Microsoft.Data.SqlClient;
+using ACCI_Center.Service.EmailService;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection("DatabaseSettings"));
+builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
 
 // Add daos and services to the container.
 builder.Services.AddSingleton<IDataClient, DataClient>();
@@ -26,6 +28,7 @@ builder.Services.AddSingleton<IExamScheduleService, ExamScheduleService>();
 builder.Services.AddSingleton<IRegisterInformationService, RegisterInformationService>();
 builder.Services.AddSingleton<IOrganizationRegisterInformationService, OrganizationRegisterInformationService>();
 builder.Services.AddSingleton<IExtensionInformationService, ExtensionInformationService>();
+builder.Services.AddSingleton<IEmailService, EmailService>();
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -33,19 +36,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
-});
 
 var app = builder.Build();
 
-app.UseCors("AllowAll");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -53,8 +46,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowFrontend");
-
+app.UseCors(builder =>
+{
+    builder.AllowAnyOrigin()
+           .AllowAnyMethod()
+           .AllowAnyHeader();
+});
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();

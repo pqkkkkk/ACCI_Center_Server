@@ -10,6 +10,8 @@ namespace ACCI_Center.Dao.RegisterInformation
     {
         public int AddRegisterInformation(Entity.RegisterInformation registerInformation);
         public int AddCandidateInformationsOfARegisterInformation(int maTTDangKy,
-            List<Entity.CandidateInformation> candidateInformations);
+                            List<Entity.CandidateInformation> candidateInformations);
+        public int UpdateExamSchedule(int maTTDangKy, int maLichThi);
+        public void UpdateCandidateStatus(int mathisinh, bool DaGuiPhieuDuThi);
     }
 }

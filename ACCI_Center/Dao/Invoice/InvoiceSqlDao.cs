@@ -22,15 +22,15 @@ namespace ACCI_Center.Dao.Invoice
         private DbParameter[] BuildParametersForAddInvoice(Entity.Invoice invoice)
         {
             var parameters = new List<DbParameter>();
+            
             var thoiDiemTaoParam = dbConnection.CreateCommand().CreateParameter();
-
             thoiDiemTaoParam.ParameterName = "@ThoiDiemTao";
             thoiDiemTaoParam.Value = invoice.ThoiDiemTao;
             parameters.Add(thoiDiemTaoParam);
 
             var thoiDiemThanhToanParam = dbConnection.CreateCommand().CreateParameter();
             thoiDiemThanhToanParam.ParameterName = "@ThoiDiemThanhToan";
-            thoiDiemThanhToanParam.Value = invoice.ThoiDiemThanhToan ?? (object)DBNull.Value;
+            thoiDiemThanhToanParam.Value = invoice.ThoiDiemThanhToan == null ? DBNull.Value : invoice.ThoiDiemThanhToan;
             parameters.Add(thoiDiemThanhToanParam);
 
             var tongTienParam = dbConnection.CreateCommand().CreateParameter();
@@ -55,37 +55,46 @@ namespace ACCI_Center.Dao.Invoice
 
             var maTTGiaHanParam = dbConnection.CreateCommand().CreateParameter();
             maTTGiaHanParam.ParameterName = "@MaTTGiaHan";
-            if (invoice.MaTTGiaHan == 0)
-            {
-                maTTGiaHanParam.Value = DBNull.Value;
-            }
-            else
-            {
-                maTTGiaHanParam.Value = invoice.MaTTGiaHan;
-            }
+            maTTGiaHanParam.Value = invoice.MaTTGiaHan == -1 || invoice.MaTTGiaHan == 0 ? DBNull.Value : invoice.MaTTGiaHan;
             parameters.Add(maTTGiaHanParam);
 
             return parameters.ToArray();
         }
         public int AddInvoice(Entity.Invoice invoice)
         {
-            string sql = """
-                INSERT INTO HoaDon (ThoiDiemTao, ThoiDiemThanhToan, TongTien, TrangThai, LoaiHoaDon, MaTTDangKy, MaTTGiaHan)
+            try
+            {
+                string sql = """
+                INSERT INTO ACCI_Center.dbo.HOADON (ThoiDiemTao, ThoiDiemThanhToan, TongTien, TrangThai, LoaiHoaDon, MaTTDangKy, MaTTGiaHan)
                 VALUES (@ThoiDiemTao, @ThoiDiemThanhToan, @TongTien, @TrangThai, @LoaiHoaDon, @MaTTDangKy, @MaTTGiaHan);
                 SELECT CAST(SCOPE_IDENTITY() AS int);
                 """;
-            DbParameter[] parameters = BuildParametersForAddInvoice(invoice);
-            using (var command = dbConnection.CreateCommand())
-            {
-                command.CommandText = sql;
-                if (dbConnection.State != ConnectionState.Open)
+                
+                DbParameter[] parameters = BuildParametersForAddInvoice(invoice);
+
+                if (dbConnection.State != System.Data.ConnectionState.Open)
                 {
                     dbConnection.Open();
                 }
-                command.Parameters.AddRange(parameters);
+                using (var command = dbConnection.CreateCommand())
+                {
+                    command.CommandText = sql;
+                    command.Parameters.AddRange(parameters);
 
-                var result =  command.ExecuteScalar();
-                return result != null ? Convert.ToInt32(result) : -1;
+                    var result = command.ExecuteScalar();
+                    return result != null ? Convert.ToInt32(result) : -1;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error while adding invoice: " + ex.Message, ex);
+            }
+            finally
+            {
+                if (dbConnection.State == System.Data.ConnectionState.Open)
+                {
+                    dbConnection.Close();
+                }
             }
         }
     }
