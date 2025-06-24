@@ -127,68 +127,106 @@ namespace ACCI_Center.Dao.ExamSchedule
         }
         public int AddExamSchedule(Entity.ExamSchedule examSchedule, int employeeId)
         {
-            int examScheduleId = -1;
+            try
+            {
+                if (dbConnection.State != System.Data.ConnectionState.Open)
+                {
+                    dbConnection.Open();
+                }
 
-            string sql = """
+                int examScheduleId = -1;
+
+                string sql = """
                 INSERT INTO LICHTHI (BaiThi, NgayThi, SoLuongThiSinhHienTai, DaNhapKetQuaThi, DaThongBaoKetQuaThi, PhongThi)
                 VALUES (@BaiThi, @NgayThi, @SoLuongThiSinhHienTai, @DaNhapKetQuaThi, @DaThongBaoKetQuaThi, @PhongThi);
                 SELECT CAST(SCOPE_IDENTITY() AS int);
                 """;
-            DbParameter[] parameters = BuildParametersForAddExamSchedule(examSchedule);
-            using (var command = dbConnection.CreateCommand())
-            {
-                command.CommandText = sql;
-                command.Parameters.AddRange(parameters);
+                DbParameter[] parameters = BuildParametersForAddExamSchedule(examSchedule);
+                using (var command = dbConnection.CreateCommand())
+                {
+                    command.CommandText = sql;
+                    command.Parameters.AddRange(parameters);
 
-                var result = command.ExecuteScalar();
-                examScheduleId = result != null ? Convert.ToInt32(result) : -1;
-            }
+                    var result = command.ExecuteScalar();
+                    examScheduleId = result != null ? Convert.ToInt32(result) : -1;
+                }
 
-            string insertEmployeeSql = """
+                string insertEmployeeSql = """
                 INSERT INTO NHANVIENCOITHI (MaNhanVien, MaLichThi)
                 VALUES (@MaNhanVien, @MaLichThi);
                 """;
-            using (var command = dbConnection.CreateCommand())
-            {
-                command.CommandText = insertEmployeeSql;
-                var employeeParam = command.CreateParameter();
-                employeeParam.ParameterName = "@MaNhanVien";
-                employeeParam.Value = employeeId;
-                command.Parameters.Add(employeeParam);
-                var examScheduleIdParam = command.CreateParameter();
-                examScheduleIdParam.ParameterName = "@MaLichThi";
-                examScheduleIdParam.Value = examScheduleId;
-                command.Parameters.Add(examScheduleIdParam);
-                command.ExecuteNonQuery();
-            }
+                using (var command = dbConnection.CreateCommand())
+                {
+                    command.CommandText = insertEmployeeSql;
+                    var employeeParam = command.CreateParameter();
+                    employeeParam.ParameterName = "@MaNhanVien";
+                    employeeParam.Value = employeeId;
+                    command.Parameters.Add(employeeParam);
+                    var examScheduleIdParam = command.CreateParameter();
+                    examScheduleIdParam.ParameterName = "@MaLichThi";
+                    examScheduleIdParam.Value = examScheduleId;
+                    command.Parameters.Add(examScheduleIdParam);
+                    command.ExecuteNonQuery();
+                }
 
-            return examScheduleId;
+                return examScheduleId;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error while adding exam schedule: " + ex.Message, ex);
+            }
+            finally
+            {
+                if (dbConnection.State == System.Data.ConnectionState.Open)
+                {
+                    dbConnection.Close();
+                }
+            }
         }
 
         public double GetFeeOfTheTest(int testId)
         {
-            string sql = """
+            try
+            {
+                string sql = """
                 SELECT GiaDangKy FROM BAITHI
                 WHERE MaBaiThi = @MaBaiThi;
                 """;
-            using (var command = dbConnection.CreateCommand())
-            {
-                command.CommandText = sql;
-                var param = command.CreateParameter();
-                param.ParameterName = "@MaBaiThi";
-                param.Value = testId;
-                command.Parameters.Add(param);
 
-                var result = command.ExecuteScalar();
-                return result != null && result != DBNull.Value
-                    ? Convert.ToDouble(result)
-                    : -1.0;
+                if (dbConnection.State != System.Data.ConnectionState.Open)
+                    dbConnection.Open();
+
+                using (var command = dbConnection.CreateCommand())
+                {
+                    command.CommandText = sql;
+                    var param = command.CreateParameter();
+                    param.ParameterName = "@MaBaiThi";
+                    param.Value = testId;
+                    command.Parameters.Add(param);
+
+                    var result = command.ExecuteScalar();
+                    return result != null && result != DBNull.Value
+                        ? Convert.ToDouble(result)
+                        : -1.0;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error while getting fee of the test: " + ex.Message, ex);
+            }
+            finally {
+                if (dbConnection.State == System.Data.ConnectionState.Open)
+                {
+                    dbConnection.Close();
+                }
             }
         }
 
         public List<int> GetAllEmptyRoomIds(DateTime desiredExamTime, int testId)
         {
-            string sql = """
+            try
+            {
+                string sql = """
                         select MaPhongThi
                         from PHONGTHI
                         except
@@ -198,24 +236,41 @@ namespace ACCI_Center.Dao.ExamSchedule
                         		or (DATEADD(minute, bt.ThoiGianThi, lt.NgayThi) >= @desiredStartExamTime and DATEADD(minute, bt.ThoiGianThi, lt.NgayThi) <= @desiredStartExamTime);
                         """;
 
-            using (var command = dbConnection.CreateCommand())
-            {
-                command.CommandText = sql;
-                var startExamTimeParam = command.CreateParameter();
-                startExamTimeParam.ParameterName = "@desiredStartExamTime";
-                startExamTimeParam.Value = desiredExamTime;
-                command.Parameters.Add(startExamTimeParam);
-                var endExamTimeParam = command.CreateParameter();
-                endExamTimeParam.ParameterName = "@desiredEndExamTime";
-                endExamTimeParam.Value = desiredExamTime.AddMinutes(30);
-                command.Parameters.Add(endExamTimeParam);
+                if(dbConnection.State != System.Data.ConnectionState.Open)
+                    dbConnection.Open();
 
-                var reader = command.ExecuteReader();
-                List<int> emptyRoomIds = new List<int>();
-
-                while (reader.Read())
+                using (var command = dbConnection.CreateCommand())
                 {
-                    emptyRoomIds.Add(reader.GetInt32(0));
+                    command.CommandText = sql;
+                    var startExamTimeParam = command.CreateParameter();
+                    startExamTimeParam.ParameterName = "@desiredStartExamTime";
+                    startExamTimeParam.Value = desiredExamTime;
+                    command.Parameters.Add(startExamTimeParam);
+                    var endExamTimeParam = command.CreateParameter();
+                    endExamTimeParam.ParameterName = "@desiredEndExamTime";
+                    endExamTimeParam.Value = desiredExamTime.AddMinutes(30);
+                    command.Parameters.Add(endExamTimeParam);
+
+                    var reader = command.ExecuteReader();
+                    List<int> emptyRoomIds = new List<int>();
+
+                    while (reader.Read())
+                    {
+                        emptyRoomIds.Add(reader.GetInt32(0));
+                    }
+
+                    return emptyRoomIds;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error while getting empty room IDs: " + ex.Message, ex);
+            }
+            finally
+            {
+                if (dbConnection.State == System.Data.ConnectionState.Open)
+                {
+                    dbConnection.Close();
                 }
 
                 return emptyRoomIds;
@@ -224,7 +279,9 @@ namespace ACCI_Center.Dao.ExamSchedule
 
         public List<int> GetAllFreeEmployeeIds(DateTime desiredExamTime, int testId)
         {
-            string sql = """
+            try
+            {
+                string sql = """
                 select MaNhanVien
                 from NHANVIEN
                 except
@@ -235,53 +292,86 @@ namespace ACCI_Center.Dao.ExamSchedule
                 		or (DATEADD(minute, bt.ThoiGianThi, lt.NgayThi) >= @desiredStartExamTime2 and DATEADD(minute, bt.ThoiGianThi, lt.NgayThi) <= @desiredStartExamTime2);
                 """;
 
-            using (var command = dbConnection.CreateCommand())
-            {
-                command.CommandText = sql;
-                var startExamTimeParam = command.CreateParameter();
-                startExamTimeParam.ParameterName = "@desiredStartExamTime2";
-                startExamTimeParam.Value = desiredExamTime;
-                command.Parameters.Add(startExamTimeParam);
-                var endExamTimeParam = command.CreateParameter();
-                endExamTimeParam.ParameterName = "@desiredEndExamTime2";
-                endExamTimeParam.Value = desiredExamTime.AddMinutes(30);
-                command.Parameters.Add(endExamTimeParam);
+                if (dbConnection.State != System.Data.ConnectionState.Open)
+                    dbConnection.Open();
 
-                var reader = command.ExecuteReader();
-                List<int> freeEmployeeIds = new List<int>();
-                while (reader.Read())
+                using (var command = dbConnection.CreateCommand())
                 {
-                    freeEmployeeIds.Add(reader.GetInt32(0));
-                }
+                    command.CommandText = sql;
+                    var startExamTimeParam = command.CreateParameter();
+                    startExamTimeParam.ParameterName = "@desiredStartExamTime2";
+                    startExamTimeParam.Value = desiredExamTime;
+                    command.Parameters.Add(startExamTimeParam);
+                    var endExamTimeParam = command.CreateParameter();
+                    endExamTimeParam.ParameterName = "@desiredEndExamTime2";
+                    endExamTimeParam.Value = desiredExamTime.AddMinutes(30);
+                    command.Parameters.Add(endExamTimeParam);
 
-                return freeEmployeeIds;
+                    var reader = command.ExecuteReader();
+                    List<int> freeEmployeeIds = new List<int>();
+                    while (reader.Read())
+                    {
+                        freeEmployeeIds.Add(reader.GetInt32(0));
+                    }
+
+                    return freeEmployeeIds;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error while getting free employee IDs: " + ex.Message, ex);
+            }
+            finally
+            {
+                if (dbConnection.State == System.Data.ConnectionState.Open)
+                {
+                    dbConnection.Close();
+                }
             }
         }
 
         public Test GetTestById(int testId)
         {
-            string sql = """
+            try
+            {
+                string sql = """
                 select * from BAITHI
                 where MaBaiThi = @MaBaiThi;
                 """;
-            using (var command = dbConnection.CreateCommand())
-            {
-                command.CommandText = sql;
-                var param = command.CreateParameter();
-                param.ParameterName = "@MaBaiThi";
-                param.Value = testId;
-                command.Parameters.Add(param);
 
-                using (var reader = command.ExecuteReader())
+                if(dbConnection.State != System.Data.ConnectionState.Open)
+                    dbConnection.Open();
+
+                using (var command = dbConnection.CreateCommand())
                 {
-                    if (reader.Read())
+                    command.CommandText = sql;
+                    var param = command.CreateParameter();
+                    param.ParameterName = "@MaBaiThi";
+                    param.Value = testId;
+                    command.Parameters.Add(param);
+
+                    using (var reader = command.ExecuteReader())
                     {
-                        return testMapFunc(reader);
+                        if (reader.Read())
+                        {
+                            return testMapFunc(reader);
+                        }
+                        else
+                        {
+                            return null;
+                        }
                     }
-                    else
-                    {
-                        return null;
-                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error while getting test by ID: " + ex.Message, ex);
+            }
+            finally
+            {
+                if (dbConnection.State == System.Data.ConnectionState.Open)
+                {
+                    dbConnection.Close();
                 }
             }
         }

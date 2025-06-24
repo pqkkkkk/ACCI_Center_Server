@@ -69,7 +69,9 @@ namespace ACCI_Center.Dao.RegisterInformation
         }
         public int AddRegisterInformation(Entity.RegisterInformation registerInformation)
         {
-            string sql = """
+            try
+            {
+                string sql = """
                 INSERT INTO TTDANGKY (
                     HoTen, SDT, Email, DiaChi, ThoiDiemDangKy, MaLichThi, TrangThai, LoaiKhachHang
                 ) VALUES (
@@ -77,71 +79,103 @@ namespace ACCI_Center.Dao.RegisterInformation
                 );
                 SELECT CAST(SCOPE_IDENTITY() AS int);
                 """;
+                DbParameter[] parameters = buildParametersForRegisterInformation(registerInformation);
 
-            DbParameter[] parameters = buildParametersForRegisterInformation(registerInformation);
-
-            using (var command = dbConnection.CreateCommand())
+                if (dbConnection.State != System.Data.ConnectionState.Open)
+                {
+                    dbConnection.Open();
+                }
+                using (var command = dbConnection.CreateCommand())
+                {
+                    command.CommandText = sql;
+                    command.Parameters.AddRange(parameters);
+                    var result = command.ExecuteScalar();
+                    return result != null ? Convert.ToInt32(result) : -1;
+                }
+            }
+            catch(Exception ex)
             {
-                command.CommandText = sql;
-                command.Parameters.AddRange(parameters);
-                var result = command.ExecuteScalar();
-                return result != null ? Convert.ToInt32(result) : -1;
+                throw new Exception("Error while adding register information", ex);
+            }
+            finally
+            {
+                if (dbConnection.State == System.Data.ConnectionState.Open)
+                {
+                    dbConnection.Close();
+                }
             }
         }
 
         public int AddCandidateInformationsOfARegisterInformation(int maTTDangKy, List<CandidateInformation> candidateInformations)
         {
-            string sql = """
-                INSERT INTO TTTTHISINH (
+            try
+            {
+                string sql = """
+                INSERT INTO TTHISINH (
                     MaTTDangKy, HoTen, SDT, Email, DaNhanChungChi, DaGuiPhieuDuThi
                 ) VALUES (
                     @MaTTDangKy, @HoTen, @SDT, @Email, @DaNhanChungChi, @DaGuiPhieuDuThi
                 );
                 """;
 
-            int rowsAffected = 0;
-
-            foreach (var candidate in candidateInformations)
-            {
-                using (var command = dbConnection.CreateCommand())
+                int rowsAffected = 0;
+                if(dbConnection.State != System.Data.ConnectionState.Open)
                 {
-                    command.CommandText = sql;
+                    dbConnection.Open();
+                }
+                foreach (var candidate in candidateInformations)
+                {
+                    using (var command = dbConnection.CreateCommand())
+                    {
+                        command.CommandText = sql;
 
-                    var maTTDangKyParam = command.CreateParameter();
-                    maTTDangKyParam.ParameterName = "@MaTTDangKy";
-                    maTTDangKyParam.Value = maTTDangKy;
-                    command.Parameters.Add(maTTDangKyParam);
+                        var maTTDangKyParam = command.CreateParameter();
+                        maTTDangKyParam.ParameterName = "@MaTTDangKy";
+                        maTTDangKyParam.Value = maTTDangKy;
+                        command.Parameters.Add(maTTDangKyParam);
 
-                    var hoTenParam = command.CreateParameter();
-                    hoTenParam.ParameterName = "@HoTen";
-                    hoTenParam.Value = candidate.HoTen;
-                    command.Parameters.Add(hoTenParam);
+                        var hoTenParam = command.CreateParameter();
+                        hoTenParam.ParameterName = "@HoTen";
+                        hoTenParam.Value = candidate.HoTen;
+                        command.Parameters.Add(hoTenParam);
 
-                    var sdtParam = command.CreateParameter();
-                    sdtParam.ParameterName = "@SDT";
-                    sdtParam.Value = candidate.SDT;
-                    command.Parameters.Add(sdtParam);
+                        var sdtParam = command.CreateParameter();
+                        sdtParam.ParameterName = "@SDT";
+                        sdtParam.Value = candidate.SDT;
+                        command.Parameters.Add(sdtParam);
 
-                    var emailParam = command.CreateParameter();
-                    emailParam.ParameterName = "@Email";
-                    emailParam.Value = candidate.Email;
-                    command.Parameters.Add(emailParam);
+                        var emailParam = command.CreateParameter();
+                        emailParam.ParameterName = "@Email";
+                        emailParam.Value = candidate.Email;
+                        command.Parameters.Add(emailParam);
 
-                    var daNhanChungChiParam = command.CreateParameter();
-                    daNhanChungChiParam.ParameterName = "@DaNhanChungChi";
-                    daNhanChungChiParam.Value = candidate.DaNhanChungChi;
-                    command.Parameters.Add(daNhanChungChiParam);
+                        var daNhanChungChiParam = command.CreateParameter();
+                        daNhanChungChiParam.ParameterName = "@DaNhanChungChi";
+                        daNhanChungChiParam.Value = candidate.DaNhanChungChi;
+                        command.Parameters.Add(daNhanChungChiParam);
 
-                    var daGuiPhieuDuThiParam = command.CreateParameter();
-                    daGuiPhieuDuThiParam.ParameterName = "@DaGuiPhieuDuThi";
-                    daGuiPhieuDuThiParam.Value = candidate.DaGuiPhieuDuThi;
-                    command.Parameters.Add(daGuiPhieuDuThiParam);
+                        var daGuiPhieuDuThiParam = command.CreateParameter();
+                        daGuiPhieuDuThiParam.ParameterName = "@DaGuiPhieuDuThi";
+                        daGuiPhieuDuThiParam.Value = candidate.DaGuiPhieuDuThi;
+                        command.Parameters.Add(daGuiPhieuDuThiParam);
 
-                    rowsAffected += command.ExecuteNonQuery();
+                        rowsAffected += command.ExecuteNonQuery();
+                    }
+                }
+
+                return rowsAffected;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error while adding candidate information", ex);
+            }
+            finally
+            {
+                if (dbConnection.State == System.Data.ConnectionState.Open)
+                {
+                    dbConnection.Close();
                 }
             }
-
-            return rowsAffected;
         }
         public void UpdateCandidateStatus(int mathisinh, bool DaGuiPhieuDuThi)
        {
