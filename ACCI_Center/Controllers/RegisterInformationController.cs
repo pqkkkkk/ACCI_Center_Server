@@ -67,6 +67,7 @@ namespace ACCI_Center.Controllers
         {
             // Logic to release exam register forms for candidates
             // This is a placeholder implementation
+            int soLuong = registerInformationService.ReleaseExamRegisterForm();
             return Ok("Exam register forms released successfully.");
         }
         [HttpGet]
