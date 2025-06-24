@@ -21,8 +21,8 @@ namespace ACCI_Center.Dao.Invoice
         private DbParameter[] BuildParametersForAddInvoice(Entity.Invoice invoice)
         {
             var parameters = new List<DbParameter>();
+            
             var thoiDiemTaoParam = dbConnection.CreateCommand().CreateParameter();
-
             thoiDiemTaoParam.ParameterName = "@ThoiDiemTao";
             thoiDiemTaoParam.Value = invoice.ThoiDiemTao;
             parameters.Add(thoiDiemTaoParam);
@@ -64,7 +64,7 @@ namespace ACCI_Center.Dao.Invoice
             try
             {
                 string sql = """
-                INSERT INTO HoaDon (ThoiDiemTao, ThoiDiemThanhToan, TongTien, TrangThai, LoaiHoaDon, MaTTDangKy, MaTTGiaHan)
+                INSERT INTO ACCI_Center.dbo.HOADON (ThoiDiemTao, ThoiDiemThanhToan, TongTien, TrangThai, LoaiHoaDon, MaTTDangKy, MaTTGiaHan)
                 VALUES (@ThoiDiemTao, @ThoiDiemThanhToan, @TongTien, @TrangThai, @LoaiHoaDon, @MaTTDangKy, @MaTTGiaHan);
                 SELECT CAST(SCOPE_IDENTITY() AS int);
                 """;

@@ -8,5 +8,6 @@
         public string? LoaiGiaHan { get; set; }
         public double? PhiGiaHan { get; set; }
         public int? MaTTDangKy { get; set; }
+        public string? TrangThai { get; set; }
     }
 }

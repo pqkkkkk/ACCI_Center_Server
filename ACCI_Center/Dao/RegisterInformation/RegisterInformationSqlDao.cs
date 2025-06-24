@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
@@ -177,6 +177,36 @@ namespace ACCI_Center.Dao.RegisterInformation
                 }
             }
         }
+        public int UpdateExamSchedule(int maTTDangKy, int maLichThi)
+        {
+            string sql = """
+                UPDATE ACCI_Center.dbo.TTDANGKY
+                SET MaLichThi = @MaLichThi
+                WHERE MaTTDangKy = @MaTTDangKy;
+                """;
+
+            int rowsAffected = 0;
+
+            using (var command = dbConnection.CreateCommand())
+            {
+                command.CommandText = sql;
+
+                var maTTDangKyParam = command.CreateParameter();
+                maTTDangKyParam.ParameterName = "@MaTTDangKy";
+                maTTDangKyParam.Value = maTTDangKy;
+                command.Parameters.Add(maTTDangKyParam);
+
+                var maLichThiParam = command.CreateParameter();
+                maLichThiParam.ParameterName = "@MaLichThi";
+                maLichThiParam.Value = maLichThi;
+                command.Parameters.Add(maLichThiParam);
+
+                dbConnection.Open();
+                rowsAffected = command.ExecuteNonQuery();
+                dbConnection.Close();
+            }
+            return rowsAffected;
+        }
         public void UpdateCandidateStatus(int mathisinh, bool DaGuiPhieuDuThi)
        {
            string sql = """
@@ -212,6 +242,5 @@ namespace ACCI_Center.Dao.RegisterInformation
 
 
        }
-
     }
 }
