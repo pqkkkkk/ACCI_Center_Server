@@ -10,64 +10,187 @@ using ACCI_Center.Dao.RegisterInformation;
 using ACCI_Center.Dao.ExtensionInformation;
 using ACCI_Center.FilterField;
 using ACCI_Center.Entity;
+using ACCI_Center.Dto;
+using ACCI_Center.Dto.Response;
+using ACCI_Center.Dto.Request;
+using System.Transactions;
 
 namespace ACCI_Center.Service.TTGiaHan
 {
     public class ExtensionInformationService : IExtensionInformationService
     {
-        private IExtensionInformationDao TTGiaHanDao;
-        private IRegisterInformationDao TTDangKyDao;
-        private IExamScheduleDao LichThiDao;
-        private IInvoiceDao HoaDonDao;
+        private const int MAX_EXTENSION_TIME = 2;
+        private const int MINIMUM_EXTENSION_LEAD_HOURS = 24;
+        private IExtensionInformationDao extensionInformationDao;
+        private IRegisterInformationDao registerInformationDao;
+        private IExamScheduleDao examScheduleDao;
+        private IInvoiceDao invoiceDao;
 
-        public ExtensionInformationService(IExtensionInformationDao ttGiaHanDao, IRegisterInformationDao ttDangKyDao, IExamScheduleDao lichThiDao, IInvoiceDao hoaDonDao)
+        public ExtensionInformationService(IExtensionInformationDao extensionInformationDao,
+                                        IRegisterInformationDao registerInformationDao,
+                                        IExamScheduleDao examScheduleDao, IInvoiceDao invoiceDao)
         {
-            TTGiaHanDao = ttGiaHanDao;
-            TTDangKyDao = ttDangKyDao;
-            LichThiDao = lichThiDao;
-            HoaDonDao = hoaDonDao;
+            this.extensionInformationDao = extensionInformationDao;
+            this.registerInformationDao = registerInformationDao;
+            this.examScheduleDao = examScheduleDao;
+            this.invoiceDao = invoiceDao;
         }
-        public int ExtendExamTimeFree(Entity.ExtensionInformation TTGiaHan)
+        public ExtensionResult ValidateExtensionRequest(int maTTDangKy, int newExamScheduleId)
         {
-            throw new NotImplementedException();
+            Entity.ExamSchedule correspondingExamSchedule = examScheduleDao.GetExamScheduleById(newExamScheduleId);
+
+
+            if (correspondingExamSchedule == null)
+                return ExtensionResult.ExamScheduleNotAvailable;
+
+
+            DateTime examTime = correspondingExamSchedule.NgayThi;
+            DateTime now = DateTime.Now;
+            if ((examTime - now).TotalHours < MINIMUM_EXTENSION_LEAD_HOURS)
+                return ExtensionResult.TooLate;
+
+
+            int extensionTime = extensionInformationDao.GetExtensionTime(maTTDangKy);
+            if (extensionTime > MAX_EXTENSION_TIME)
+                return ExtensionResult.ExceedExtendTimeLimit;
+
+            return ExtensionResult.Ok;
+
         }
-
-        public int ExtendExamTimePaid(Entity.ExtensionInformation TTGiaHan, int MaLichThiMoi)
+        public ExtensionResponse ExtendExamTimeFree(ExtensionRequest request)
         {
-            if (TTGiaHan == null || MaLichThiMoi <= 0) { return 0; }
-            int maTTGiaHan = TTGiaHanDao.AddExtensionInformation(TTGiaHan);
-            if (maTTGiaHan <= 0) { return 0; }
-
-            Invoice invoice = new Invoice
+            try
             {
-                ThoiDiemTao = DateTime.Now,
-                TongTien = TTGiaHan.PhiGiaHan,
-                TrangThai = "Chưa thanh toán",
-                LoaiHoaDon = "Gia hạn thi",
-                MaTTDangKy = TTGiaHan.MaTTDangKy,
-                MaTTGiaHan = maTTGiaHan
-            };
-            if (TTDangKyDao.UpdateExamSchedule(TTGiaHan.MaTTDangKy, MaLichThiMoi) > 0
-                && HoaDonDao.AddInvoice(invoice) > 0) return 1;
-            return 0;
+                using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    // Validate request
+                    ExtensionResult extensionResult = ValidateExtensionRequest(request.extensionInformation.MaTTDangKy, request.newExamScheduleId);
+                    if (extensionResult != ExtensionResult.Ok)
+                    {
+                        return new ExtensionResponse()
+                        {
+                            extensionResult = extensionResult,
+                            statusCode = StatusCodes.Status200OK
+                        };
+                    }
+
+                    // Update the register information with the new exam schedule
+                    var updateRegisterInformationResult = registerInformationDao.UpdateExamSchedule(request.extensionInformation.MaTTDangKy, request.newExamScheduleId);
+                    if (updateRegisterInformationResult <= 0)
+                    {
+                        throw new Exception("Failed to update register information with new exam schedule.");
+                    }
+
+                    // Add extension information
+                    int extensionInformationId = extensionInformationDao.AddExtensionInformation(request.extensionInformation);
+                    if (extensionInformationId <= 0)
+                    {
+                        throw new Exception("Failed to add extension information.");
+                    }
+
+                    // Commit the transaction
+                    transaction.Complete();
+                    return new ExtensionResponse()
+                    {
+                        extensionInformation = request.extensionInformation,
+                        newExamSchedule = null,
+                        statusCode = StatusCodes.Status200OK,
+                        extensionResult = ExtensionResult.Ok,
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new ExtensionResponse()
+                {
+                    statusCode = StatusCodes.Status500InternalServerError,
+                    extensionResult = ExtensionResult.UnknownError
+                };
+            }
         }
 
-        public List<Entity.ExtensionInformation> LoadExtendInformation()
+        public ExtensionResponse ExtendExamTimePaid(ExtensionRequest request)
         {
-            throw new NotImplementedException();
+            try
+            {
+                using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    // Validate request
+                    ExtensionResult extensionResult = ValidateExtensionRequest(request.extensionInformation.MaTTDangKy, request.newExamScheduleId);
+                    if (extensionResult != ExtensionResult.Ok)
+                    {
+                        return new ExtensionResponse()
+                        {
+                            extensionResult = extensionResult,
+                            statusCode = StatusCodes.Status200OK
+                        };
+                    }
+
+                    // Update the register information with the new exam schedule
+                    var updateRegisterInformationResult = registerInformationDao.UpdateExamSchedule(request.extensionInformation.MaTTDangKy, request.newExamScheduleId);
+                    if(updateRegisterInformationResult <= 0)
+                    {
+                        throw new Exception("Failed to update register information with new exam schedule.");
+                    }
+
+                    // Add extension information
+                    int extensionInformationId = extensionInformationDao.AddExtensionInformation(request.extensionInformation);
+                    if (extensionInformationId <= 0)
+                    {
+                        throw new Exception("Failed to add extension information.");
+                    }
+
+
+                    // Add invoice for the extension
+                    Invoice invoice = new Invoice
+                    {
+                        ThoiDiemTao = DateTime.Now,
+                        TongTien = request.extensionInformation.PhiGiaHan,
+                        TrangThai = "Chưa thanh toán",
+                        LoaiHoaDon = "Gia hạn thi",
+                        MaTTDangKy = -1,
+                        MaTTGiaHan = extensionInformationId
+                    };
+                    int invoiceId = invoiceDao.AddInvoice(invoice);
+                    if (invoiceId <= 0)
+                    {
+                        throw new Exception("Failed to create invoice for extension.");
+                    }
+
+                    // Commit the transaction
+                    transaction.Complete();
+                    return new ExtensionResponse()
+                    {
+                        extensionInformation = request.extensionInformation,
+                        newExamSchedule = null,
+                        statusCode = StatusCodes.Status200OK,
+                        extensionResult = ExtensionResult.Ok,
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new ExtensionResponse()
+                {
+                    statusCode = StatusCodes.Status500InternalServerError,
+                    extensionResult = ExtensionResult.UnknownError
+                };
+            }
         }
 
-        public List<ExtensionInformation> LoadExtendInformation(int pageSize, int currentPageNumber, ExtensionInformationFilterObject extensionInformationFilterObject)
+        public PagedResult<Entity.ExtensionInformation> LoadExtendInformation(int pageSize, int currentPageNumber, ExtensionInformationFilterObject extensionInformationFilterObject)
         {
-            return TTGiaHanDao.LoadExtendInformation(pageSize, currentPageNumber, extensionInformationFilterObject);
+            try
+            {
+                return extensionInformationDao.LoadExtendInformation(pageSize, currentPageNumber, extensionInformationFilterObject);
+            }
+            catch (Exception ex)
+            {
+                return new PagedResult<ExtensionInformation>(null, 0, 0, 0);
+            }
         }
 
         public Entity.ExtensionInformation LoadExtendInformationById(int maTTGiaHan)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ValidateExtendRequestResult ValidateExtensionRequest(int maTTDangKy, DateTime desiredExamDate)
         {
             throw new NotImplementedException();
         }

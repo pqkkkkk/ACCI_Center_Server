@@ -10,8 +10,10 @@ using ACCI_Center.Dao.RegisterInformation;
 using ACCI_Center.Dto.Request;
 using ACCI_Center.FilterField;
 using ACCI_Center.Dto.Reponse;
-using ACCI_Center.Entity;;
+using ACCI_Center.Entity;
 using ACCI_Center.Service.EmailService;
+using ACCI_Center.Dto;
+using ACCI_Center.Dto.Response;
 
 namespace ACCI_Center.Service.TTDangKy
 {
@@ -34,56 +36,66 @@ namespace ACCI_Center.Service.TTDangKy
         {
             throw new NotImplementedException();
         }
-        public RegisterResult RegisterForIndividual(IndividualRegisterRequest individualRegisterRequest)
+        public IndividualRegisterResponse RegisterForIndividual(IndividualRegisterRequest individualRegisterRequest)
         {
             try
             {
-                for(int i=0; i < individualRegisterRequest.SelectedExamScheduleId.Count; i++)
+                individualRegisterRequest.registerInformation.ThoiDiemDangKy = DateTime.Now;
+                individualRegisterRequest.registerInformation.TrangThai = "Chưa thanh toán";
+                individualRegisterRequest.registerInformation.MaLichThi = individualRegisterRequest.SelectedExamScheduleId;
+                individualRegisterRequest.registerInformation.LoaiKhachHang = "Cá nhân";
+                int registerInformationId = registerInformationDao.AddRegisterInformation(individualRegisterRequest.registerInformation);
+                if (registerInformationId == -1)
                 {
-                    individualRegisterRequest.registerInformation.ThoiDiemDangKy = DateTime.Now;
-                    individualRegisterRequest.registerInformation.TrangThai = "Chưa thanh toán";
-                    individualRegisterRequest.registerInformation.MaLichThi = individualRegisterRequest.SelectedExamScheduleId[i];
-                    individualRegisterRequest.registerInformation.LoaiKhachHang = "Cá nhân";
-                    int registerInformationId = registerInformationDao.AddRegisterInformation(individualRegisterRequest.registerInformation);
-                    if (registerInformationId == -1)
-                    {
-                        return RegisterResult.UnknownError;
-                    }
-                    // Add candidate information for the individual registration
-                    int result = registerInformationDao.AddCandidateInformationsOfARegisterInformation(registerInformationId, individualRegisterRequest.candidateInformation);
-                    if (result == -1)
-                    {
-                        return RegisterResult.UnknownError;
-                    }
-                    int testId = examScheduleDao.GetTestIdByExamScheduleId(individualRegisterRequest.SelectedExamScheduleId[i]);
-                    Invoice invoice = new Invoice
-                    {
-                        MaTTDangKy = registerInformationId,
-                        TrangThai = "Chưa thanh toán",
-                        TongTien = examScheduleDao.GetFeeOfTheTest(testId),
-                        ThoiDiemTao = DateTime.Now,
-                        ThoiDiemThanhToan = null,
-                        LoaiHoaDon = "Đăng ký thi",
-                        MaTTGiaHan = 0,
-                    };
-                    int invoiceId = invoiceDao.AddInvoice(invoice);
-                    if (invoiceId == -1)
-                    {
-                        return RegisterResult.UnknownError;
-                    }
-                    bool updated = examScheduleDao.UpdateQuantityOfExamSchedule(individualRegisterRequest.SelectedExamScheduleId[i], 1);
-                    if (!updated)
-                    {
-                        return RegisterResult.UnknownError;
-                    }
+                    throw new Exception("Failed to add register information for individual registration.");
                 }
-                return RegisterResult.Success;
+
+                // Add candidate information for the individual registration
+                int result = registerInformationDao
+                            .AddCandidateInformationsOfARegisterInformation(registerInformationId,
+                            new List<CandidateInformation> {individualRegisterRequest.candidateInformation });
+                if (result == -1)
+                {
+                    throw new Exception("Failed to add candidate information for individual registration.");
+                }
+
+                // Add invoice for the individual registration
+                int testId = examScheduleDao.GetTestIdByExamScheduleId(individualRegisterRequest.SelectedExamScheduleId);
+                Invoice invoice = new Invoice
+                {
+                    MaTTDangKy = registerInformationId,
+                    TrangThai = "Chưa thanh toán",
+                    TongTien = examScheduleDao.GetFeeOfTheTest(testId),
+                    ThoiDiemTao = DateTime.Now,
+                    ThoiDiemThanhToan = null,
+                    LoaiHoaDon = "Đăng ký thi",
+                    MaTTGiaHan = 0,
+                };
+                int invoiceId = invoiceDao.AddInvoice(invoice);
+                if (invoiceId == -1)
+                {
+                    throw new Exception("Failed to add invoice for individual registration.");
+                }
+                bool updated = examScheduleDao.UpdateQuantityOfExamSchedule(individualRegisterRequest.SelectedExamScheduleId, 1);
+                if (!updated)
+                {
+                    throw new Exception("Failed to update exam schedule quantity for individual registration.");
+                }
+
+                return new IndividualRegisterResponse()
+                {
+                    registerResult = RegisterResult.Success,
+                    statusCode = StatusCodes.Status200OK
+                };
             }
             catch (Exception ex)
             {
-                // Log the exception
                 Console.WriteLine($"Error during individual registration: {ex.Message}");
-                return RegisterResult.UnknownError;
+                return new IndividualRegisterResponse
+                {
+                    registerResult = RegisterResult.UnknownError,
+                    statusCode = StatusCodes.Status500InternalServerError
+                };
             }
         }
 
@@ -102,10 +114,19 @@ namespace ACCI_Center.Service.TTDangKy
            throw new NotImplementedException();
        }
 
-       public List<Entity.RegisterInformation> LoadRegisterInformation(int pageSize, int currentPageNumber, RegisterInformationFilterObject registerInformationFilterObject)
+       public PagedResult<Entity.RegisterInformation> LoadRegisterInformation(int pageSize, int currentPageNumber, RegisterInformationFilterObject registerInformationFilterObject)
        {
-           throw new NotImplementedException();
-       }
+            try
+            {
+                var result = registerInformationDao.LoadRegisterInformation(pageSize, currentPageNumber, registerInformationFilterObject);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+                return new PagedResult<Entity.RegisterInformation>(null, 0, 0, 0);
+            }
+        }
 
        public int ReleaseExamRegisterForm()
        {

@@ -17,6 +17,25 @@ namespace ACCI_Center.Controllers
         {
             this.examScheduleService = examScheduleService;
         }
+        [HttpGet]
+        public ActionResult<PagedResult<Entity.ExamSchedule>> GetExamSchedules(
+            [FromQuery] int pageSize,
+            [FromQuery] int currentPageNumber,
+            [FromQuery] ExamScheduleFilterObject filterObject
+            )
+        {
+            var result = examScheduleService.LoadExamSchedules(pageSize, currentPageNumber, filterObject);
+
+            if(result.items == null)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while fetching exam schedules.");
+            }
+            if (result.items.Count() == 0)
+            {
+                return NotFound("No exam schedules found.");
+            }
+            return Ok(result);
+        }
         [HttpGet("Test")]
         public ActionResult<PagedResult<Entity.Test>> GetTests(
             [FromQuery] int pageSize,

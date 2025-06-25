@@ -2,8 +2,8 @@
 {
     public class ExamScheduleFilterObject
     {
-        public int MaLichThi { get; set; }
-        public string? BaiThi { get; set; }
+        public int? MaLichThi { get; set; }
+        public int? BaiThi { get; set; }
         public DateTime? NgayThiBatDau { get; set; }
         public DateTime? NgayThiKetThuc { get; set; }
         public bool? DaNhapKetQuaThi { get; set; }

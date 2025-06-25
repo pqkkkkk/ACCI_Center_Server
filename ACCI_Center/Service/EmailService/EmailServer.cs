@@ -32,7 +32,8 @@ namespace ACCI_Center.Service.EmailService
 
 
            // 2. Tạo PDF
-           new BrowserFetcher().DownloadAsync().GetAwaiter().GetResult();            using var browser = Puppeteer.LaunchAsync(new LaunchOptions { Headless = true }).GetAwaiter().GetResult();
+           new BrowserFetcher().DownloadAsync().GetAwaiter().GetResult();            
+           using var browser = Puppeteer.LaunchAsync(new LaunchOptions { Headless = true }).GetAwaiter().GetResult();
            using var page = browser.NewPageAsync().GetAwaiter().GetResult();
 
 

@@ -7,7 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
 using ACCI_Center.Configuraion;
+using ACCI_Center.Dto;
 using ACCI_Center.Entity;
+using ACCI_Center.FilterField;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ACCI_Center.Dao.RegisterInformation
@@ -22,6 +24,21 @@ namespace ACCI_Center.Dao.RegisterInformation
             this.dataClient = dataClient;
             dbConnection = dataClient.GetDbConnection();
         }
+        Func<DbDataReader, Entity.RegisterInformation> registerInformationMapFunc = reader =>
+        {
+            return new Entity.RegisterInformation
+            {
+                MaTTDangKy = reader.GetInt32(reader.GetOrdinal("MaTTDangKy")),
+                HoTen = reader.GetString(reader.GetOrdinal("HoTen")),
+                SDT = reader.GetString(reader.GetOrdinal("SDT")),
+                Email = reader.GetString(reader.GetOrdinal("Email")),
+                DiaChi = reader.GetString(reader.GetOrdinal("DiaChi")),
+                ThoiDiemDangKy = reader.GetDateTime(reader.GetOrdinal("ThoiDiemDangKy")),
+                MaLichThi = reader.GetInt32(reader.GetOrdinal("MaLichThi")),
+                TrangThai = reader.GetString(reader.GetOrdinal("TrangThai")),
+                LoaiKhachHang = reader.GetString(reader.GetOrdinal("LoaiKhachHang"))
+            };
+        };
         private DbParameter[] buildParametersForRegisterInformation(Entity.RegisterInformation registerInformation)
         {
             var parameters = new List<DbParameter>();
@@ -244,5 +261,154 @@ namespace ACCI_Center.Dao.RegisterInformation
 
 
        }
+        private string BuildWhereClauseForRegisterInformationQuery(RegisterInformationFilterObject filterObject)
+        {
+            List<string> whereClauses = new List<string>();
+            if (filterObject.MaTTDangKy.HasValue)
+            {
+                whereClauses.Add("MaTTDangKy = @MaTTDangKy");
+            }
+            if (!string.IsNullOrEmpty(filterObject.HoTen))
+            {
+                whereClauses.Add("HoTen LIKE @HoTen");
+            }
+            if (!string.IsNullOrEmpty(filterObject.SDT))
+            {
+                whereClauses.Add("SDT LIKE @SDT");
+            }
+            if (!string.IsNullOrEmpty(filterObject.Email))
+            {
+                whereClauses.Add("Email LIKE @Email");
+            }
+            if (!string.IsNullOrEmpty(filterObject.DiaChi))
+            {
+                whereClauses.Add("DiaChi LIKE @DiaChi");
+            }
+            if (filterObject.ThoiDiemDangKyBatDau.HasValue)
+            {
+                whereClauses.Add("ThoiDiemDangKy >= @ThoiDiemDangKyBatDau");
+            }
+            if (filterObject.ThoiDiemDangKyKetThuc.HasValue)
+            {
+                whereClauses.Add("ThoiDiemDangKy <= @ThoiDiemDangKyKetThuc");
+            }
+            if (filterObject.MaLichThi.HasValue)
+            {
+                whereClauses.Add("MaLichThi = @MaLichThi");
+            }
+            if (!string.IsNullOrEmpty(filterObject.TrangThai))
+            {
+                whereClauses.Add("TrangThai = @TrangThai");
+            }
+            if (!string.IsNullOrEmpty(filterObject.LoaiKhachHang))
+            {
+                whereClauses.Add("LoaiKhachHang = @LoaiKhachHang");
+            }
+
+            return whereClauses.Count > 0
+                ? "WHERE " + string.Join(" AND ", whereClauses)
+                : string.Empty;
+        }
+        private DbParameter[] BuidlerDbParametersForRegisterInformationQuery(RegisterInformationFilterObject filterObject)
+        {
+            var dbParameters = new List<DbParameter>();
+
+            if (filterObject.MaTTDangKy.HasValue)
+            {
+                var maTTDangKyParam = dbConnection.CreateCommand().CreateParameter();
+                maTTDangKyParam.ParameterName = "@MaTTDangKy";
+                maTTDangKyParam.Value = filterObject.MaTTDangKy.Value;
+                dbParameters.Add(maTTDangKyParam);
+            }
+            if (!string.IsNullOrEmpty(filterObject.HoTen))
+            {
+                var hoTenParam = dbConnection.CreateCommand().CreateParameter();
+                hoTenParam.ParameterName = "@HoTen";
+                hoTenParam.Value = "%" + filterObject.HoTen + "%";
+                dbParameters.Add(hoTenParam);
+            }
+            if (!string.IsNullOrEmpty(filterObject.SDT))
+            {
+                var sdtParam = dbConnection.CreateCommand().CreateParameter();
+                sdtParam.ParameterName = "@SDT";
+                sdtParam.Value = "%" + filterObject.SDT + "%";
+                dbParameters.Add(sdtParam);
+            }
+            if (!string.IsNullOrEmpty(filterObject.Email))
+            {
+                var emailParam = dbConnection.CreateCommand().CreateParameter();
+                emailParam.ParameterName = "@Email";
+                emailParam.Value = "%" + filterObject.Email + "%";
+                dbParameters.Add(emailParam);
+            }
+            if (!string.IsNullOrEmpty(filterObject.DiaChi))
+            {
+                var diaChiParam = dbConnection.CreateCommand().CreateParameter();
+                diaChiParam.ParameterName = "@DiaChi";
+                diaChiParam.Value = "%" + filterObject.DiaChi + "%";
+                dbParameters.Add(diaChiParam);
+            }
+            if (filterObject.ThoiDiemDangKyBatDau.HasValue)
+            {
+                var thoiDiemDangKyBatDauParam = dbConnection.CreateCommand().CreateParameter();
+                thoiDiemDangKyBatDauParam.ParameterName = "@ThoiDiemDangKyBatDau";
+                thoiDiemDangKyBatDauParam.Value = filterObject.ThoiDiemDangKyBatDau.Value;
+                dbParameters.Add(thoiDiemDangKyBatDauParam);
+            }
+            if (filterObject.ThoiDiemDangKyKetThuc.HasValue)
+            {
+                var thoiDiemDangKyKetThucParam = dbConnection.CreateCommand().CreateParameter();
+                thoiDiemDangKyKetThucParam.ParameterName = "@ThoiDiemDangKyKetThuc";
+                thoiDiemDangKyKetThucParam.Value = filterObject.ThoiDiemDangKyKetThuc.Value;
+                dbParameters.Add(thoiDiemDangKyKetThucParam);
+            }
+            if (filterObject.MaLichThi.HasValue)
+            {
+                var maLichThiParam = dbConnection.CreateCommand().CreateParameter();
+                maLichThiParam.ParameterName = "@MaLichThi";
+                maLichThiParam.Value = filterObject.MaLichThi.Value;
+                dbParameters.Add(maLichThiParam);
+            }
+            if (!string.IsNullOrEmpty(filterObject.TrangThai))
+            {
+                var trangThaiParam = dbConnection.CreateCommand().CreateParameter();
+                trangThaiParam.ParameterName = "@TrangThai";
+                trangThaiParam.Value = filterObject.TrangThai;
+                dbParameters.Add(trangThaiParam);
+            }
+            if (!string.IsNullOrEmpty(filterObject.LoaiKhachHang))
+            {
+                var loaiKhachHangParam = dbConnection.CreateCommand().CreateParameter();
+                loaiKhachHangParam.ParameterName = "@LoaiKhachHang";
+                loaiKhachHangParam.Value = filterObject.LoaiKhachHang;
+                dbParameters.Add(loaiKhachHangParam);
+            }
+
+
+            return dbParameters.ToArray();
+        }
+        public PagedResult<Entity.RegisterInformation> LoadRegisterInformation(int pageSize, int currentPageNumber, RegisterInformationFilterObject filterObject)
+        {
+            string baseSql = @"
+                SELECT * 
+                FROM TTDANGKY";
+            string whereClause = BuildWhereClauseForRegisterInformationQuery(filterObject);
+            if (!string.IsNullOrEmpty(whereClause))
+            {
+                baseSql += " " + whereClause;
+            }
+            string orderByClause = "ORDER BY MaTTDangKy";
+
+            var dbParameters = BuidlerDbParametersForRegisterInformationQuery(filterObject);
+
+            return Helper.PaginationHelper.ExecutePagedAsync<Entity.RegisterInformation>(
+                dbConnection,
+                baseSql,
+                orderByClause,
+                registerInformationMapFunc,
+                currentPageNumber,
+                pageSize,
+                dbParameters).GetAwaiter().GetResult();
+        }
     }
 }

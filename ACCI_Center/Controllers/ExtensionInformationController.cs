@@ -21,56 +21,33 @@ namespace ACCI_Center.Controllers
             _extensionInformationService = extensionInformationService;
         }
         [HttpPost("free")]
-        public ActionResult<string> FreeExtension()
+        public ActionResult<ExtensionResponse> FreeExtension([FromBody] ExtensionRequest request)
         {
             // Logic for free extension
             return Ok("Free extension applied successfully.");
         }
         [HttpPost("paid")]
-        public ActionResult<string> PaidExtension([FromBody] PaidRenewalRequest request)
+        public ActionResult<ExtensionResponse> PaidExtension([FromBody] ExtensionRequest request)
         {
-            if(_extensionInformationService.ExtendExamTimePaid(new ExtensionInformation
-            {
-                ThoiDiemGiaHan = DateTime.Now,
-                LoaiGiaHan = "Gia hạn có phí",
-                LyDo = request.LyDo,
-                TrangThai = "Chưa thanh toán",
-                PhiGiaHan = request.PhiGiaHan,
-                MaTTDangKy = request.MaTTDangKy
-            }, request.MaLichThiMoi)  > 0) 
-                return Ok("Paid extension applied successfully.");
-            return BadRequest("Failed to apply paid extension. Please check the request data and try again.");
+
+            return Ok("Paid extension applied successfully.");
+
         }
         [HttpGet]
-        public ActionResult<PagedResult<ExtensionInformationDto>> GetPagedExtensions([FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] int? maTTGiaHan = null,
-            [FromQuery] string? loaiGiaHan = null,
-            [FromQuery] string? trangThai = null)
+        public ActionResult<PagedResult<Entity.ExtensionInformation>> GetPagedExtensions(
+            [FromQuery] int pageSize,
+            [FromQuery] int currentPageNumber,
+            [FromQuery] ExtensionInformationFilterObject filterObject
+            )
         {
-            var filter = new ExtensionInformationFilterObject
-            {
-                MaTTGiaHan = maTTGiaHan,
-                LoaiGiaHan = loaiGiaHan,
-                TrangThai = trangThai
-            };
-            var allExtensions = _extensionInformationService.LoadExtendInformation(pageSize, page, filter);
-            var itemCount = allExtensions.Count;
 
-            var result = new PagedResult<ExtensionInformationDto>(
-                allExtensions.Select(x => new ExtensionInformationDto
-                {
-                    MaTTGiaHan = x.MaTTGiaHan,
-                    ThoiDiemGiaHan = x.ThoiDiemGiaHan,
-                    LoaiGiaHan = x.LoaiGiaHan,
-                    LyDo = x.LyDo,
-                    TrangThai = x.TrangThai,
-                    PhiGiaHan = x.PhiGiaHan
-                }).ToList(),
-                itemCount,
-                page,
-                pageSize
-            );
+            var result = _extensionInformationService.LoadExtendInformation(pageSize, currentPageNumber, filterObject);
+
+            if(result.items == null)
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving extension information.");
+            if (result.items.Count() == 0)
+                return NotFound("No extension information found matching the provided criteria.");
+
             return Ok(result);
         }
 

@@ -38,9 +38,17 @@ namespace ACCI_Center.Service.ExamSchedule
             throw new NotImplementedException();
         }
 
-        public List<Entity.ExamSchedule> LoadExamSchedules()
+        public PagedResult<Entity.ExamSchedule> LoadExamSchedules(int pageSize, int currentPageNumber, ExamScheduleFilterObject filterObject)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return examScheduleDao.GetExamSchedules(pageSize, currentPageNumber, filterObject);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+                return new PagedResult<Entity.ExamSchedule>(null, 0, 0, 0);
+            }
         }
         public PagedResult<Test> LoadTests(int pageSize, int currentPageNumber, TestFilterObject testFilterObject)
         {

@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace ACCI_Center.BusinessResult
 {
-    public enum ValidateExtendRequestResult
+    public enum ExtensionResult
     {
         Ok,
         TooLate,
         ExceedExtendTimeLimit,
-        DesiredExamDateNotAvailable,
+        ExamScheduleNotAvailable,
+        UnknownError
     }
 }

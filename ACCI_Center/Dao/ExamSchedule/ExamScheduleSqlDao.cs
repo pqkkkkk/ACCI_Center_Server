@@ -37,6 +37,19 @@ namespace ACCI_Center.Dao.ExamSchedule
                 ThoiGianThi = reader.GetInt32(reader.GetOrdinal("ThoiGianThi"))
             };
         };
+        Func<DbDataReader, Entity.ExamSchedule> examScheduleMapFunc = reader =>
+        {
+            return new Entity.ExamSchedule
+            {
+                MaLichThi = reader.GetInt32(reader.GetOrdinal("MaLichThi")),
+                BaiThi = reader.GetInt32(reader.GetOrdinal("BaiThi")),
+                NgayThi = reader.GetDateTime(reader.GetOrdinal("NgayThi")),
+                SoLuongThiSinhHienTai = reader.GetInt32(reader.GetOrdinal("SoLuongThiSinhHienTai")),
+                DaNhapKetQuaThi = reader.GetBoolean(reader.GetOrdinal("DaNhapKetQuaThi")),
+                DaThongBaoKetQuaThi = reader.GetBoolean(reader.GetOrdinal("DaThongBaoKetQuaThi")),
+                PhongThi = reader.GetInt32(reader.GetOrdinal("PhongThi"))
+            };
+        };
         private string BuildWhereClauseForTestQuery(TestFilterObject testFilterObject)
         {
             var whereClauses = new List<string>();
@@ -275,8 +288,6 @@ namespace ACCI_Center.Dao.ExamSchedule
                 {
                     dbConnection.Close();
                 }
-
-                return emptyRoomIds;
             }
         }
 
@@ -411,44 +422,60 @@ namespace ACCI_Center.Dao.ExamSchedule
            }
            return examSchedule;
        }
-      
-       public List<Entity.CandidateInformation> GetCandidatesByExamScheduleId(int id)
-       {
-           List<Entity.CandidateInformation> candidates = new List<Entity.CandidateInformation>();
-           string sql = """
+
+        public List<Entity.CandidateInformation> GetCandidatesByExamScheduleId(int id)
+        {
+            try
+            {
+                List<Entity.CandidateInformation> candidates = new List<Entity.CandidateInformation>();
+                string sql = """
                SELECT ts.*
                FROM TThiSinh ts JOIN TTDangKy dk on ts.MaTTDangKy = dk.MaTTDangKy
                WHERE dk.MaLichThi = @id
            """;
-            using (var command = dbConnection.CreateCommand())
-            {
-                if (dbConnection.State != ConnectionState.Open)
+                using (var command = dbConnection.CreateCommand())
                 {
-                    dbConnection.Open();
-                }
-                command.CommandText = sql;
-                var idParam = command.CreateParameter();
-                idParam.ParameterName = "@id";
-                idParam.Value = id;
-                command.Parameters.Add(idParam);
-
-
-                using (var reader = command.ExecuteReader())
-                {
-                    while (reader.Read())
+                    if (dbConnection.State != ConnectionState.Open)
                     {
-                        var candidate = new Entity.CandidateInformation
-                        {
-                            MaTTThiSinh = reader.GetInt32(reader.GetOrdinal("MaTTThiSinh")),
-                            MaTTDangKy = reader.GetInt32(reader.GetOrdinal("MaTTDangKy")),
-                            HoTen = reader.GetString(reader.GetOrdinal("HoTen")),
-                            SDT = reader.GetString(reader.GetOrdinal("SDT")),
-                            Email = reader.GetString(reader.GetOrdinal("Email")),
-                            DaNhanChungChi = reader.GetBoolean(reader.GetOrdinal("DaNhanChungChi")),
-                            DaGuiPhieuDuThi = reader.GetBoolean(reader.GetOrdinal("DaGuiPhieuDuThi"))
-                        };
-                        candidates.Add(candidate);
+                        dbConnection.Open();
                     }
+                    command.CommandText = sql;
+                    var idParam = command.CreateParameter();
+                    idParam.ParameterName = "@id";
+                    idParam.Value = id;
+                    command.Parameters.Add(idParam);
+
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var candidate = new Entity.CandidateInformation
+                            {
+                                MaTTThiSinh = reader.GetInt32(reader.GetOrdinal("MaTTThiSinh")),
+                                MaTTDangKy = reader.GetInt32(reader.GetOrdinal("MaTTDangKy")),
+                                HoTen = reader.GetString(reader.GetOrdinal("HoTen")),
+                                SDT = reader.GetString(reader.GetOrdinal("SDT")),
+                                Email = reader.GetString(reader.GetOrdinal("Email")),
+                                DaNhanChungChi = reader.GetBoolean(reader.GetOrdinal("DaNhanChungChi")),
+                                DaGuiPhieuDuThi = reader.GetBoolean(reader.GetOrdinal("DaGuiPhieuDuThi"))
+                            };
+                            candidates.Add(candidate);
+                        }
+                    }
+                }
+
+                return candidates;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error while getting candidates by exam schedule ID: " + ex.Message, ex);
+            }
+            finally
+            {
+                if (dbConnection.State == ConnectionState.Open)
+                {
+                    dbConnection.Close();
                 }
             }
         }
@@ -550,7 +577,170 @@ namespace ACCI_Center.Dao.ExamSchedule
                 return rowsAffected > 0;
             }
         }
-       return candidates;
-       }
+
+        private string BuildWhereClauseForExamScheduleQuery(ExamScheduleFilterObject filterObject)
+        {
+            var whereClauses = new List<string>();
+            if(filterObject.MaLichThi.HasValue && filterObject.MaLichThi > 0)
+            {
+                whereClauses.Add("MaLichThi = @MaLichThi");
+            }
+            if (filterObject.BaiThi.HasValue &&  filterObject.BaiThi > 0)
+            {
+                whereClauses.Add("BaiThi = @BaiThi");
+            }
+            if (filterObject.NgayThiKetThuc.HasValue)
+            {
+                whereClauses.Add("NgayThi <= @NgayThiKetThuc");
+            }
+            if (filterObject.NgayThiBatDau.HasValue)
+            {
+                whereClauses.Add("NgayThi >= @NgayThiBatDau");
+            }
+            if (filterObject.DaNhapKetQuaThi.HasValue)
+            {
+                whereClauses.Add("DaNhapKetQuaThi = @DaNhapKetQuaThi");
+            }
+            if (filterObject.DaPhatHanhPhieuDangKyThi.HasValue)
+            {
+                whereClauses.Add("DaPhatHanhPhieuDangKyThi = @DaPhatHanhPhieuDangKyThi");
+            }
+            if (filterObject.DaThongBaoKetQuaThi.HasValue)
+            {
+                whereClauses.Add("DaThongBaoKetQuaThi = @DaThongBaoKetQuaThi");
+            }
+            if (filterObject.PhongThi.HasValue && filterObject.PhongThi > 0)
+            {
+                whereClauses.Add("PhongThi = @PhongThi");
+            }
+
+            return whereClauses.Count > 0 ? "WHERE " + string.Join(" AND ", whereClauses) : string.Empty;
+        }
+        private DbParameter[] BuildDbParametersForExamScheduleQuery(ExamScheduleFilterObject filterObject)
+        {
+            var parameters = new List<DbParameter>();
+
+            if (filterObject.MaLichThi > 0)
+            {
+                var param = dbConnection.CreateCommand().CreateParameter();
+                param.ParameterName = "@MaLichThi";
+                param.Value = filterObject.MaLichThi;
+                parameters.Add(param);
+            }
+            if (filterObject.BaiThi > 0)
+            {
+                var param = dbConnection.CreateCommand().CreateParameter();
+                param.ParameterName = "@BaiThi";
+                param.Value = filterObject.BaiThi;
+                parameters.Add(param);
+            }
+            if (filterObject.NgayThiKetThuc.HasValue)
+            {
+                var param = dbConnection.CreateCommand().CreateParameter();
+                param.ParameterName = "@NgayThiKetThuc";
+                param.Value = filterObject.NgayThiKetThuc.Value;
+                parameters.Add(param);
+            }
+            if (filterObject.NgayThiBatDau.HasValue)
+            {
+                var param = dbConnection.CreateCommand().CreateParameter();
+                param.ParameterName = "@NgayThiBatDau";
+                param.Value = filterObject.NgayThiBatDau.Value;
+                parameters.Add(param);
+            }
+            if (filterObject.DaNhapKetQuaThi.HasValue)
+            {
+                var param = dbConnection.CreateCommand().CreateParameter();
+                param.ParameterName = "@DaNhapKetQuaThi";
+                param.Value = filterObject.DaNhapKetQuaThi.Value;
+                parameters.Add(param);
+            }
+            if (filterObject.DaPhatHanhPhieuDangKyThi.HasValue)
+            {
+                var param = dbConnection.CreateCommand().CreateParameter();
+                param.ParameterName = "@DaPhatHanhPhieuDangKyThi";
+                param.Value = filterObject.DaPhatHanhPhieuDangKyThi.Value;
+                parameters.Add(param);
+            }
+            if (filterObject.DaThongBaoKetQuaThi.HasValue)
+            {
+                var param = dbConnection.CreateCommand().CreateParameter();
+                param.ParameterName = "@DaThongBaoKetQuaThi";
+                param.Value = filterObject.DaThongBaoKetQuaThi.Value;
+                parameters.Add(param);
+            }
+            if (filterObject.PhongThi.HasValue)
+            {
+                var param = dbConnection.CreateCommand().CreateParameter();
+                param.ParameterName = "@PhongThi";
+                param.Value = filterObject.PhongThi.Value;
+                parameters.Add(param);
+            }
+
+            return parameters.ToArray();
+        }
+        public PagedResult<Entity.ExamSchedule> GetExamSchedules(int pageSize, int currentPageNumber, ExamScheduleFilterObject filterObject)
+        {
+            string baseSql = @"
+                SELECT * 
+                FROM LICHTHI";
+            string whereClause = BuildWhereClauseForExamScheduleQuery(filterObject);
+            if (!string.IsNullOrEmpty(whereClause))
+            {
+                baseSql += " " + whereClause;
+            }
+            string orderByClause = "ORDER BY MaLichThi";
+
+            var dbParameters = BuildDbParametersForExamScheduleQuery(filterObject);
+
+            return Helper.PaginationHelper.ExecutePagedAsync<Entity.ExamSchedule>(
+                dbConnection,
+                baseSql,
+                orderByClause,
+                examScheduleMapFunc,
+                currentPageNumber,
+                pageSize,
+                dbParameters).GetAwaiter().GetResult();
+        }
+
+        public Entity.ExamSchedule GetExamScheduleById(int examScheduleId)
+        {
+            string sql = """
+                SELECT * FROM LICHTHI WHERE MaLichThi = @MaLichThi
+            """;
+
+            try
+            {
+                if (dbConnection.State != ConnectionState.Open)
+                {
+                    dbConnection.Open();
+                }
+
+                using (var command = dbConnection.CreateCommand())
+                {
+                    command.CommandText = sql;
+                    var param = command.CreateParameter();
+                    param.ParameterName = "@MaLichThi";
+                    param.Value = examScheduleId;
+                    command.Parameters.Add(param);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        return examScheduleMapFunc(reader);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error while getting exam schedule by ID: " + ex.Message, ex);
+            }
+            finally
+            {
+                if (dbConnection.State == ConnectionState.Open)
+                {
+                    dbConnection.Close();
+                }
+            }
+        }
     }
 }
