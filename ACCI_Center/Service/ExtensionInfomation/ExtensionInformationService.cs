@@ -35,27 +35,68 @@ namespace ACCI_Center.Service.TTGiaHan
             this.examScheduleDao = examScheduleDao;
             this.invoiceDao = invoiceDao;
         }
-        public ExtensionResult ValidateExtensionRequest(int maTTDangKy, int newExamScheduleId)
+        public ExtensionResult ValidateExtensionRequest(int maTTDangKy, int? newExamScheduleId)
         {
-            Entity.ExamSchedule correspondingExamSchedule = examScheduleDao.GetExamScheduleById(newExamScheduleId);
+            if (newExamScheduleId != null)
+            {
+                Entity.ExamSchedule? newExamSchedule = examScheduleDao.GetExamScheduleById(newExamScheduleId ?? 0);
 
+                if (newExamSchedule == null)
+                    return ExtensionResult.ExamScheduleNotAvailable;
+            }
 
-            if (correspondingExamSchedule == null)
-                return ExtensionResult.ExamScheduleNotAvailable;
+            Entity.RegisterInformation? registerInformation = registerInformationDao.LoadRegisterInformationById(maTTDangKy);
+            if(registerInformation == null)
+                return ExtensionResult.RegisterInformationNotFound;
 
+            Entity.ExamSchedule? oldExamSchedule = examScheduleDao.GetExamScheduleById(registerInformation?.MaLichThi ?? 0);
+            if (oldExamSchedule == null)
+                return ExtensionResult.OldExamScheduleNotFound;
 
-            DateTime examTime = correspondingExamSchedule.NgayThi;
+            DateTime examTime = oldExamSchedule?.NgayThi ?? DateTime.MinValue;
             DateTime now = DateTime.Now;
             if ((examTime - now).TotalHours < MINIMUM_EXTENSION_LEAD_HOURS)
                 return ExtensionResult.TooLate;
 
 
             int extensionTime = extensionInformationDao.GetExtensionTime(maTTDangKy);
-            if (extensionTime > MAX_EXTENSION_TIME)
+            if (extensionTime >= MAX_EXTENSION_TIME)
                 return ExtensionResult.ExceedExtendTimeLimit;
 
             return ExtensionResult.Ok;
 
+        }
+        public ValidateExtensionRequestResponse ValidateExtensionRequest(int maTTDangKy)
+        {
+            try
+            {
+                ExtensionResult extensionResult = ValidateExtensionRequest(maTTDangKy, null);
+                if (extensionResult != ExtensionResult.Ok)
+                {
+                    return new ValidateExtensionRequestResponse()
+                    {
+                        isValid = false,
+                        statusCode = StatusCodes.Status200OK,
+                        result = extensionResult
+                    };
+                }
+
+                return new ValidateExtensionRequestResponse()
+                {
+                    isValid = true,
+                    statusCode = StatusCodes.Status200OK,
+                    result = ExtensionResult.Ok
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ValidateExtensionRequestResponse()
+                {
+                    isValid = false,
+                    statusCode = StatusCodes.Status500InternalServerError,
+                    result = ExtensionResult.UnknownError
+                };
+            }
         }
         public ExtensionResponse ExtendExamTimeFree(ExtensionRequest request)
         {
@@ -82,18 +123,24 @@ namespace ACCI_Center.Service.TTGiaHan
                     }
 
                     // Add extension information
+                    request.extensionInformation.LoaiGiaHan = "Gia hạn miễn phí";
+                    request.extensionInformation.PhiGiaHan = 0;
+                    request.extensionInformation.TrangThai = "Đã thanh toán";
+                    request.extensionInformation.ThoiDiemGiaHan = DateTime.Now;
                     int extensionInformationId = extensionInformationDao.AddExtensionInformation(request.extensionInformation);
                     if (extensionInformationId <= 0)
                     {
                         throw new Exception("Failed to add extension information.");
                     }
 
+                    var newExamSchedule = examScheduleDao.GetExamScheduleById(request.newExamScheduleId);
+
                     // Commit the transaction
                     transaction.Complete();
                     return new ExtensionResponse()
                     {
                         extensionInformation = request.extensionInformation,
-                        newExamSchedule = null,
+                        newExamSchedule = newExamSchedule,
                         statusCode = StatusCodes.Status200OK,
                         extensionResult = ExtensionResult.Ok,
                     };
@@ -142,27 +189,29 @@ namespace ACCI_Center.Service.TTGiaHan
 
 
                     // Add invoice for the extension
-                    Invoice invoice = new Invoice
-                    {
-                        ThoiDiemTao = DateTime.Now,
-                        TongTien = request.extensionInformation.PhiGiaHan,
-                        TrangThai = "Chưa thanh toán",
-                        LoaiHoaDon = "Gia hạn thi",
-                        MaTTDangKy = -1,
-                        MaTTGiaHan = extensionInformationId
-                    };
-                    int invoiceId = invoiceDao.AddInvoice(invoice);
-                    if (invoiceId <= 0)
-                    {
-                        throw new Exception("Failed to create invoice for extension.");
-                    }
+                    //Invoice invoice = new Invoice
+                    //{
+                    //    ThoiDiemTao = DateTime.Now,
+                    //    TongTien = request.extensionInformation.PhiGiaHan,
+                    //    TrangThai = "Chưa thanh toán",
+                    //    LoaiHoaDon = "Gia hạn thi",
+                    //    MaTTDangKy = -1,
+                    //    MaTTGiaHan = extensionInformationId
+                    //};
+                    //int invoiceId = invoiceDao.AddInvoice(invoice);
+                    //if (invoiceId <= 0)
+                    //{
+                    //    throw new Exception("Failed to create invoice for extension.");
+                    //}
+
+                    var newExamSchedule = examScheduleDao.GetExamScheduleById(request.newExamScheduleId);
 
                     // Commit the transaction
                     transaction.Complete();
                     return new ExtensionResponse()
                     {
                         extensionInformation = request.extensionInformation,
-                        newExamSchedule = null,
+                        newExamSchedule = newExamSchedule,
                         statusCode = StatusCodes.Status200OK,
                         extensionResult = ExtensionResult.Ok,
                     };
@@ -194,5 +243,7 @@ namespace ACCI_Center.Service.TTGiaHan
         {
             throw new NotImplementedException();
         }
+
+
     }
 }

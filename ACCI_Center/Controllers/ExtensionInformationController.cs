@@ -21,17 +21,42 @@ namespace ACCI_Center.Controllers
             _extensionInformationService = extensionInformationService;
         }
         [HttpPost("free")]
-        public ActionResult<ExtensionResponse> FreeExtension([FromBody] ExtensionRequest request)
+        public ActionResult<ExtensionResponse> HandleFreeExtension([FromBody] ExtensionRequest request)
         {
-            // Logic for free extension
-            return Ok("Free extension applied successfully.");
+            var response = _extensionInformationService.ExtendExamTimeFree(request);
+
+            if(response.statusCode != StatusCodes.Status200OK)
+            {
+                return StatusCode(response.statusCode, response);
+            }
+
+            return Ok(response);
         }
         [HttpPost("paid")]
-        public ActionResult<ExtensionResponse> PaidExtension([FromBody] ExtensionRequest request)
+        public ActionResult<ExtensionResponse> HandlePaidExtension([FromBody] ExtensionRequest request)
         {
+            var response = _extensionInformationService.ExtendExamTimePaid(request);
 
-            return Ok("Paid extension applied successfully.");
+            if (response.statusCode != StatusCodes.Status200OK)
+            {
+                return StatusCode(response.statusCode, response);
+            }
 
+            return Ok(response);
+
+        }
+        [HttpGet("validate")]
+        public ActionResult<ValidateExtensionRequestResponse> ValidateExtensionRequest(
+                        [FromQuery] int registerInformationId)
+        {
+            var response = _extensionInformationService.ValidateExtensionRequest(registerInformationId);
+
+            if(response.statusCode != StatusCodes.Status200OK)
+            {
+                return StatusCode(response.statusCode, response);
+            }
+
+            return Ok(response);
         }
         [HttpGet]
         public ActionResult<PagedResult<Entity.ExtensionInformation>> GetPagedExtensions(

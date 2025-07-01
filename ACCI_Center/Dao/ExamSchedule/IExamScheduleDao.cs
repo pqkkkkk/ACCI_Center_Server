@@ -23,8 +23,8 @@ namespace ACCI_Center.Dao.ExamSchedule
                                             int currentPageNumber,
                                             ExamScheduleFilterObject filterObject);
         public double GetFeeOfTheTest(int testId);
-        public Entity.Test GetTestById(int testId);
-        public Entity.ExamSchedule GetExamScheduleById(int examScheduleId);
+        public Entity.Test? GetTestById(int testId);
+        public Entity.ExamSchedule? GetExamScheduleById(int examScheduleId);
         public List<int> GetAllEmptyRoomIds(DateTime desiredExamTime, int testId);
         public List<int> GetAllFreeEmployeeIds(DateTime desiredExamTime, int testId);
         public List<AvailableExamScheduleReponse> GetAvailableExamSchedules();

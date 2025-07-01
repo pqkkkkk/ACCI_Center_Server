@@ -49,7 +49,7 @@ namespace ACCI_Center.Service.EmailService
            var email = new MimeMessage();
            // email.Sender = new MailboxAddress(_mailSettings.DisplayName, _mailSettings.Mail);
            email.From.Add(new MailboxAddress(_mailSettings.DisplayName, _mailSettings.Mail));
-           email.To.Add(MailboxAddress.Parse("qthong2004@gmail.com"));
+           email.To.Add(MailboxAddress.Parse(candidate.Email));
            email.Subject = "Phiếu Dự Thi";
            var builder = new BodyBuilder
            {

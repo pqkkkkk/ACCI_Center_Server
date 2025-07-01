@@ -40,15 +40,9 @@ namespace ACCI_Center.Controllers
         public ActionResult<PagedResult<Entity.Test>> GetTests(
             [FromQuery] int pageSize,
             [FromQuery] int currentPageNumber,
-            [FromQuery] string? LoaiBaiThi,
-            [FromQuery] string? TenBaiThi
+            [FromQuery] TestFilterObject testFilterObject
             )
         {
-            TestFilterObject testFilterObject = new TestFilterObject
-            {
-                LoaiBaiThi = LoaiBaiThi,
-                TenBaiThi = TenBaiThi
-            };
             var result = examScheduleService.LoadTests(pageSize, currentPageNumber, testFilterObject);
 
             if (result == null || result.items == null || result.items.Count() == 0)

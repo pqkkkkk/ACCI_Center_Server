@@ -13,12 +13,10 @@ namespace ACCI_Center.Dao.ExtensionInformation
     public class ExtensionInformationSqlDao : IExtensionInformationDao
     {
         private readonly IDataClient dataClient;
-        private readonly DbConnection dbConnection;
 
         public ExtensionInformationSqlDao(IDataClient dataClient)
         {
             this.dataClient = dataClient;
-            dbConnection = dataClient.GetDbConnection();
         }
         Func<DbDataReader, Entity.ExtensionInformation> extensionInformationMapFunc = (reader) =>
         {
@@ -29,13 +27,17 @@ namespace ACCI_Center.Dao.ExtensionInformation
                 LoaiGiaHan = reader.GetString(reader.GetOrdinal("LoaiGiaHan")),
                 LyDo = reader.GetString(reader.GetOrdinal("LyDo")),
                 TrangThai = reader.GetString(reader.GetOrdinal("TrangThai")),
-                PhiGiaHan = (double)reader.GetDecimal(reader.GetOrdinal("PhiGiaHan")),
+                PhiGiaHan = reader.GetFloat(reader.GetOrdinal("PhiGiaHan")),
                 MaTTDangKy = reader.GetInt32(reader.GetOrdinal("MaTTDangKy"))
             };
         };
         public int AddExtensionInformation(Entity.ExtensionInformation extension)
         {
-            string sql = """
+            using (var dbConnection = dataClient.GetDbConnection())
+            {
+                try
+                {
+                    string sql = """
                 INSERT INTO ACCI_Center.dbo.TTGIAHAN (
                     ThoiDiemGiaHan, LoaiGiaHan, LyDo, TrangThai, PhiGiaHan, MaTTDangKy
                 ) VALUES (
@@ -44,44 +46,52 @@ namespace ACCI_Center.Dao.ExtensionInformation
                 SELECT CAST(SCOPE_IDENTITY() AS int);
             """;
 
-            using (var command = dbConnection.CreateCommand())
-            {
-                command.CommandText = sql;
+                    using (var command = dbConnection.CreateCommand())
+                    {
+                        if (dbConnection.State != System.Data.ConnectionState.Open)
+                        {
+                            dbConnection.Open();
+                        }
+                        command.CommandText = sql;
 
-                var thoiDiemParam = command.CreateParameter();
-                thoiDiemParam.ParameterName = "@ThoiDiemGiaHan";
-                thoiDiemParam.Value = extension.ThoiDiemGiaHan;
-                command.Parameters.Add(thoiDiemParam);
+                        var thoiDiemParam = command.CreateParameter();
+                        thoiDiemParam.ParameterName = "@ThoiDiemGiaHan";
+                        thoiDiemParam.Value = extension.ThoiDiemGiaHan;
+                        command.Parameters.Add(thoiDiemParam);
 
-                var loaiParam = command.CreateParameter();
-                loaiParam.ParameterName = "@LoaiGiaHan";
-                loaiParam.Value = extension.LoaiGiaHan;
-                command.Parameters.Add(loaiParam);
+                        var loaiParam = command.CreateParameter();
+                        loaiParam.ParameterName = "@LoaiGiaHan";
+                        loaiParam.Value = extension.LoaiGiaHan;
+                        command.Parameters.Add(loaiParam);
 
-                var lyDoParam = command.CreateParameter();
-                lyDoParam.ParameterName = "@LyDo";
-                lyDoParam.Value = extension.LyDo;
-                command.Parameters.Add(lyDoParam);
+                        var lyDoParam = command.CreateParameter();
+                        lyDoParam.ParameterName = "@LyDo";
+                        lyDoParam.Value = extension.LyDo;
+                        command.Parameters.Add(lyDoParam);
 
-                var trangThaiParam = command.CreateParameter();
-                trangThaiParam.ParameterName = "@TrangThai";
-                trangThaiParam.Value = extension.TrangThai;
-                command.Parameters.Add(trangThaiParam);
+                        var trangThaiParam = command.CreateParameter();
+                        trangThaiParam.ParameterName = "@TrangThai";
+                        trangThaiParam.Value = extension.TrangThai;
+                        command.Parameters.Add(trangThaiParam);
 
-                var phiParam = command.CreateParameter();
-                phiParam.ParameterName = "@PhiGiaHan";
-                phiParam.Value = extension.PhiGiaHan;
-                command.Parameters.Add(phiParam);
+                        var phiParam = command.CreateParameter();
+                        phiParam.ParameterName = "@PhiGiaHan";
+                        phiParam.Value = extension.PhiGiaHan;
+                        command.Parameters.Add(phiParam);
 
-                var maTTParam = command.CreateParameter();
-                maTTParam.ParameterName = "@MaTTDangKy";
-                maTTParam.Value = extension.MaTTDangKy;
-                command.Parameters.Add(maTTParam);
+                        var maTTParam = command.CreateParameter();
+                        maTTParam.ParameterName = "@MaTTDangKy";
+                        maTTParam.Value = extension.MaTTDangKy;
+                        command.Parameters.Add(maTTParam);
 
-                dbConnection.Open(); 
-                var result = command.ExecuteScalar();
-                dbConnection.Close(); 
-                return result != null ? Convert.ToInt32(result) : -1;
+                        var result = command.ExecuteScalar();
+                        return result != null ? Convert.ToInt32(result) : -1;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error while adding extension information: " + ex.Message, ex);
+                }
             }
         }
         private string BuildWhereClauseForExtensionInformationQuery(ExtensionInformationFilterObject filterObject)
@@ -116,7 +126,7 @@ namespace ACCI_Center.Dao.ExtensionInformation
             }
             return whereClauses.Count > 0 ? "WHERE " + string.Join(" AND ", whereClauses) : string.Empty;
         }
-        private DbParameter[] BuildDbParametersForExtensionInformationQuery(ExtensionInformationFilterObject filterObject)
+        private DbParameter[] BuildDbParametersForExtensionInformationQuery(ExtensionInformationFilterObject filterObject, DbConnection dbConnection)
         {
             var dbParameters = new List<DbParameter>();
             if (filterObject != null)
@@ -170,50 +180,56 @@ namespace ACCI_Center.Dao.ExtensionInformation
             int currentPageNumber,
             FilterField.ExtensionInformationFilterObject filterObject)
         {
-            string baseSql = @"
+            using (var dbConnection = dataClient.GetDbConnection())
+            {
+                string baseSql = @"
                 SELECT * 
                 FROM TTGIAHAN";
-            string whereClause = BuildWhereClauseForExtensionInformationQuery(filterObject);
-            if (!string.IsNullOrEmpty(whereClause))
-            {
-                baseSql += " " + whereClause;
+                string whereClause = BuildWhereClauseForExtensionInformationQuery(filterObject);
+                if (!string.IsNullOrEmpty(whereClause))
+                {
+                    baseSql += " " + whereClause;
+                }
+                string orderByClause = "ORDER BY MaTTGiaHan";
+
+                var dbParameters = BuildDbParametersForExtensionInformationQuery(filterObject, dbConnection);
+
+                return Helper.PaginationHelper.ExecutePagedAsync<Entity.ExtensionInformation>(
+                    dbConnection,
+                    baseSql,
+                    orderByClause,
+                    extensionInformationMapFunc,
+                    currentPageNumber,
+                    pageSize,
+                    dbParameters).GetAwaiter().GetResult();
             }
-            string orderByClause = "ORDER BY MaTTGiaHan";
-
-            var dbParameters = BuildDbParametersForExtensionInformationQuery(filterObject);
-
-            return Helper.PaginationHelper.ExecutePagedAsync<Entity.ExtensionInformation>(
-                dbConnection,
-                baseSql,
-                orderByClause,
-                extensionInformationMapFunc,
-                currentPageNumber,
-                pageSize,
-                dbParameters).GetAwaiter().GetResult();
         }
 
         public int GetExtensionTime(int registerInformationId)
         {
-            string sql = @"
+            using (var dbConnection = dataClient.GetDbConnection())
+            {
+                string sql = @"
                 SELECT COUNT(*)
                 FROM TTGIAHAN
                 WHERE MaTTDangKy = @MaTTDangKy
             ";
 
-            using (var command = dbConnection.CreateCommand())
-            {
-                command.CommandText = sql;
+                using (var command = dbConnection.CreateCommand())
+                {
+                    command.CommandText = sql;
 
-                var param = command.CreateParameter();
-                param.ParameterName = "@MaTTDangKy";
-                param.Value = registerInformationId;
-                command.Parameters.Add(param);
+                    var param = command.CreateParameter();
+                    param.ParameterName = "@MaTTDangKy";
+                    param.Value = registerInformationId;
+                    command.Parameters.Add(param);
 
-                dbConnection.Open();
-                var result = command.ExecuteScalar();
-                dbConnection.Close();
+                    dbConnection.Open();
+                    var result = command.ExecuteScalar();
+                    dbConnection.Close();
 
-                return result != null ? Convert.ToInt32(result) : 0;
+                    return result != null ? Convert.ToInt32(result) : 0;
+                }
             }
         }
     }

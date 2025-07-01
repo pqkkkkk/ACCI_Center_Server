@@ -96,6 +96,19 @@ namespace ACCI_Center.Controllers
 
             return Ok(result);
         }
+        [HttpGet("{registerInformationId}")]
+        public ActionResult<RegisterInformationByIdResponse> LoadRegisterInformationsById(int registerInformationId,
+                                                                                          [FromQuery] string? parts)
+        {
+            var response = registerInformationService.LoadRegisterInformationById(registerInformationId, parts);
+
+            if (response.statusCode != StatusCodes.Status200OK)
+            {
+                return StatusCode(response.statusCode, response.message);
+            }
+
+            return Ok(response);
+        }
 
     }
 }

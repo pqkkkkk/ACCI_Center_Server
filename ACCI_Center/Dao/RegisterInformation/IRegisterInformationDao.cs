@@ -17,5 +17,7 @@ namespace ACCI_Center.Dao.RegisterInformation
         public int UpdateExamSchedule(int maTTDangKy, int maLichThi);
         public void UpdateCandidateStatus(int mathisinh, bool DaGuiPhieuDuThi);
         public PagedResult<Entity.RegisterInformation> LoadRegisterInformation(int pageSize, int currentPageNumber, RegisterInformationFilterObject filterObject);
+        public Entity.RegisterInformation? LoadRegisterInformationById(int maTTDangKy);
+        public List<Entity.CandidateInformation> LoadCandidatesInformation(int maTTDangKy);
     }
 }

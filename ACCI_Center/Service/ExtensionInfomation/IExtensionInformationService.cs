@@ -13,7 +13,8 @@ namespace ACCI_Center.Service.TTGiaHan
 {
     public interface IExtensionInformationService
     {
-        public ExtensionResult ValidateExtensionRequest(int maTTDangKy, int newExamScheduleId);
+        public ExtensionResult ValidateExtensionRequest(int maTTDangKy, int? newExamScheduleId);
+        public ValidateExtensionRequestResponse ValidateExtensionRequest(int maTTDangKy);
         public ExtensionResponse ExtendExamTimeFree(ExtensionRequest request);
         public ExtensionResponse ExtendExamTimePaid(ExtensionRequest request);
         public PagedResult<Entity.ExtensionInformation> LoadExtendInformation(int pageSize, int currentPageNumber,

@@ -12,6 +12,8 @@ namespace ACCI_Center.BusinessResult
         TooLate,
         ExceedExtendTimeLimit,
         ExamScheduleNotAvailable,
-        UnknownError
+        UnknownError,
+        RegisterInformationNotFound,
+        OldExamScheduleNotFound,
     }
 }

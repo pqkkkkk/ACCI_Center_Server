@@ -9,13 +9,13 @@ namespace ACCI_Center.Entity
 {
     public class ExtensionInformation : INotifyPropertyChanged
     {
-        public int MaTTGiaHan { get; set; }
-        public DateTime ThoiDiemGiaHan { get; set; }
-        public string? LoaiGiaHan { get; set; }
+        public int MaTTGiaHan { get; set; } = 0;
+        public DateTime? ThoiDiemGiaHan { get; set; } = null;
+        public string? LoaiGiaHan { get; set; } = "";
         public string? LyDo { get; set; }
         public string? TrangThai { get; set; }
         public double PhiGiaHan { get; set; }
-        public int MaTTDangKy { get; set; }
+        public int MaTTDangKy { get; set; } = 0;
         public event PropertyChangedEventHandler? PropertyChanged;
     }
 }

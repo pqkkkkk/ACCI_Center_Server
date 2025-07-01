@@ -17,12 +17,10 @@ namespace ACCI_Center.Dao.RegisterInformation
     public class RegisterInformationSqlDao : IRegisterInformationDao
     {
         private readonly IDataClient dataClient;
-        private readonly DbConnection dbConnection;
 
         public RegisterInformationSqlDao(IDataClient dataClient)
         {
             this.dataClient = dataClient;
-            dbConnection = dataClient.GetDbConnection();
         }
         Func<DbDataReader, Entity.RegisterInformation> registerInformationMapFunc = reader =>
         {
@@ -39,7 +37,20 @@ namespace ACCI_Center.Dao.RegisterInformation
                 LoaiKhachHang = reader.GetString(reader.GetOrdinal("LoaiKhachHang"))
             };
         };
-        private DbParameter[] buildParametersForRegisterInformation(Entity.RegisterInformation registerInformation)
+        Func<DbDataReader, Entity.CandidateInformation> candidateInformationMapFunc = reader =>
+        {
+            return new Entity.CandidateInformation
+            {
+                MaTTThiSinh = reader.GetInt32(reader.GetOrdinal("MaTTThiSinh")),
+                MaTTDangKy = reader.GetInt32(reader.GetOrdinal("MaTTDangKy")),
+                HoTen = reader.GetString(reader.GetOrdinal("HoTen")),
+                SDT = reader.GetString(reader.GetOrdinal("SDT")),
+                Email = reader.GetString(reader.GetOrdinal("Email")),
+                DaGuiPhieuDuThi = reader.GetBoolean(reader.GetOrdinal("DaGuiPhieuDuThi")),
+                DaNhanChungChi = reader.GetBoolean(reader.GetOrdinal("DaNhanChungChi"))
+            };
+        };
+        private DbParameter[] buildParametersForRegisterInformation(Entity.RegisterInformation registerInformation, DbConnection dbConnection)
         {
             var parameters = new List<DbParameter>();
 
@@ -87,9 +98,11 @@ namespace ACCI_Center.Dao.RegisterInformation
         }
         public int AddRegisterInformation(Entity.RegisterInformation registerInformation)
         {
-            try
+            using (var dbConnection = dataClient.GetDbConnection())
             {
-                string sql = """
+                try
+                {
+                    string sql = """
                 INSERT INTO TTDANGKY (
                     HoTen, SDT, Email, DiaChi, ThoiDiemDangKy, MaLichThi, TrangThai, LoaiKhachHang
                 ) VALUES (
@@ -97,39 +110,34 @@ namespace ACCI_Center.Dao.RegisterInformation
                 );
                 SELECT CAST(SCOPE_IDENTITY() AS int);
                 """;
-                DbParameter[] parameters = buildParametersForRegisterInformation(registerInformation);
+                    DbParameter[] parameters = buildParametersForRegisterInformation(registerInformation, dbConnection);
 
-                if (dbConnection.State != System.Data.ConnectionState.Open)
-                {
-                    dbConnection.Open();
+                    if (dbConnection.State != System.Data.ConnectionState.Open)
+                    {
+                        dbConnection.Open();
+                    }
+                    using (var command = dbConnection.CreateCommand())
+                    {
+                        command.CommandText = sql;
+                        command.Parameters.AddRange(parameters);
+                        var result = command.ExecuteScalar();
+                        return result != null ? Convert.ToInt32(result) : -1;
+                    }
                 }
-                using (var command = dbConnection.CreateCommand())
+                catch (Exception ex)
                 {
-                    command.CommandText = sql;
-                    command.Parameters.AddRange(parameters);
-                    var result = command.ExecuteScalar();
-                    return result != null ? Convert.ToInt32(result) : -1;
-                }
-            }
-            catch(Exception ex)
-            {
-                throw new Exception("Error while adding register information", ex);
-            }
-            finally
-            {
-                if (dbConnection.State == System.Data.ConnectionState.Open)
-                {
-                    dbConnection.Close();
+                    throw new Exception("Error while adding register information", ex);
                 }
             }
         }
 
         public int AddCandidateInformationsOfARegisterInformation(int maTTDangKy, List<CandidateInformation> candidateInformations)
         {
-
-            try
+            using (var dbConnection = dataClient.GetDbConnection())
             {
-                string sql = """
+                try
+                {
+                    string sql = """
                 INSERT INTO TTHISINH (
                     MaTTDangKy, HoTen, SDT, Email, DaNhanChungChi, DaGuiPhieuDuThi
                 ) VALUES (
@@ -137,15 +145,79 @@ namespace ACCI_Center.Dao.RegisterInformation
                 );
                 """;
 
-                int rowsAffected = 0;
-                if(dbConnection.State != System.Data.ConnectionState.Open)
-                {
-                    dbConnection.Open();
+                    int rowsAffected = 0;
+                    if (dbConnection.State != System.Data.ConnectionState.Open)
+                    {
+                        dbConnection.Open();
+                    }
+                    foreach (var candidate in candidateInformations)
+                    {
+                        using (var command = dbConnection.CreateCommand())
+                        {
+                            command.CommandText = sql;
+
+                            var maTTDangKyParam = command.CreateParameter();
+                            maTTDangKyParam.ParameterName = "@MaTTDangKy";
+                            maTTDangKyParam.Value = maTTDangKy;
+                            command.Parameters.Add(maTTDangKyParam);
+
+                            var hoTenParam = command.CreateParameter();
+                            hoTenParam.ParameterName = "@HoTen";
+                            hoTenParam.Value = candidate.HoTen;
+                            command.Parameters.Add(hoTenParam);
+
+                            var sdtParam = command.CreateParameter();
+                            sdtParam.ParameterName = "@SDT";
+                            sdtParam.Value = candidate.SDT;
+                            command.Parameters.Add(sdtParam);
+
+                            var emailParam = command.CreateParameter();
+                            emailParam.ParameterName = "@Email";
+                            emailParam.Value = candidate.Email;
+                            command.Parameters.Add(emailParam);
+
+                            var daNhanChungChiParam = command.CreateParameter();
+                            daNhanChungChiParam.ParameterName = "@DaNhanChungChi";
+                            daNhanChungChiParam.Value = candidate.DaNhanChungChi;
+                            command.Parameters.Add(daNhanChungChiParam);
+
+                            var daGuiPhieuDuThiParam = command.CreateParameter();
+                            daGuiPhieuDuThiParam.ParameterName = "@DaGuiPhieuDuThi";
+                            daGuiPhieuDuThiParam.Value = candidate.DaGuiPhieuDuThi;
+                            command.Parameters.Add(daGuiPhieuDuThiParam);
+
+                            rowsAffected += command.ExecuteNonQuery();
+                        }
+                    }
+
+                    return rowsAffected;
                 }
-                foreach (var candidate in candidateInformations)
+                catch (Exception ex)
                 {
+                    throw new Exception("Error while adding candidate information", ex);
+                }
+            }
+        }
+        public int UpdateExamSchedule(int maTTDangKy, int maLichThi)
+        {
+            using (var dbConnection = dataClient.GetDbConnection())
+            {
+                try
+                {
+                    string sql = """
+                UPDATE ACCI_Center.dbo.TTDANGKY
+                SET MaLichThi = @MaLichThi
+                WHERE MaTTDangKy = @MaTTDangKy;
+                """;
+
+                    int rowsAffected = 0;
+
                     using (var command = dbConnection.CreateCommand())
                     {
+                        if (dbConnection.State != System.Data.ConnectionState.Open)
+                        {
+                            dbConnection.Open();
+                        }
                         command.CommandText = sql;
 
                         var maTTDangKyParam = command.CreateParameter();
@@ -153,112 +225,56 @@ namespace ACCI_Center.Dao.RegisterInformation
                         maTTDangKyParam.Value = maTTDangKy;
                         command.Parameters.Add(maTTDangKyParam);
 
-                        var hoTenParam = command.CreateParameter();
-                        hoTenParam.ParameterName = "@HoTen";
-                        hoTenParam.Value = candidate.HoTen;
-                        command.Parameters.Add(hoTenParam);
+                        var maLichThiParam = command.CreateParameter();
+                        maLichThiParam.ParameterName = "@MaLichThi";
+                        maLichThiParam.Value = maLichThi;
+                        command.Parameters.Add(maLichThiParam);
 
-                        var sdtParam = command.CreateParameter();
-                        sdtParam.ParameterName = "@SDT";
-                        sdtParam.Value = candidate.SDT;
-                        command.Parameters.Add(sdtParam);
-
-                        var emailParam = command.CreateParameter();
-                        emailParam.ParameterName = "@Email";
-                        emailParam.Value = candidate.Email;
-                        command.Parameters.Add(emailParam);
-
-                        var daNhanChungChiParam = command.CreateParameter();
-                        daNhanChungChiParam.ParameterName = "@DaNhanChungChi";
-                        daNhanChungChiParam.Value = candidate.DaNhanChungChi;
-                        command.Parameters.Add(daNhanChungChiParam);
-
-                        var daGuiPhieuDuThiParam = command.CreateParameter();
-                        daGuiPhieuDuThiParam.ParameterName = "@DaGuiPhieuDuThi";
-                        daGuiPhieuDuThiParam.Value = candidate.DaGuiPhieuDuThi;
-                        command.Parameters.Add(daGuiPhieuDuThiParam);
-
-                        rowsAffected += command.ExecuteNonQuery();
+                        rowsAffected = command.ExecuteNonQuery();
                     }
+                    return rowsAffected;
                 }
-
-                return rowsAffected;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error while adding candidate information", ex);
-            }
-            finally
-            {
-                if (dbConnection.State == System.Data.ConnectionState.Open)
+                catch (Exception ex)
                 {
-                    dbConnection.Close();
+                    throw new Exception("Error while updating exam schedule", ex);
                 }
             }
-        }
-        public int UpdateExamSchedule(int maTTDangKy, int maLichThi)
-        {
-            string sql = """
-                UPDATE ACCI_Center.dbo.TTDANGKY
-                SET MaLichThi = @MaLichThi
-                WHERE MaTTDangKy = @MaTTDangKy;
-                """;
-
-            int rowsAffected = 0;
-
-            using (var command = dbConnection.CreateCommand())
-            {
-                command.CommandText = sql;
-
-                var maTTDangKyParam = command.CreateParameter();
-                maTTDangKyParam.ParameterName = "@MaTTDangKy";
-                maTTDangKyParam.Value = maTTDangKy;
-                command.Parameters.Add(maTTDangKyParam);
-
-                var maLichThiParam = command.CreateParameter();
-                maLichThiParam.ParameterName = "@MaLichThi";
-                maLichThiParam.Value = maLichThi;
-                command.Parameters.Add(maLichThiParam);
-
-                dbConnection.Open();
-                rowsAffected = command.ExecuteNonQuery();
-                dbConnection.Close();
-            }
-            return rowsAffected;
         }
         public void UpdateCandidateStatus(int mathisinh, bool DaGuiPhieuDuThi)
        {
-           string sql = """
+            using (var dbConnection = dataClient.GetDbConnection())
+            {
+                string sql = """
                UPDATE TTHISINH
                SET DaGuiPhieuDuThi = @DaGuiPhieuDuThi
                WHERE MaTTThiSinh = @mathisinh
            """;
 
 
-           using (var command = dbConnection.CreateCommand())
-           {
-               if (dbConnection.State != System.Data.ConnectionState.Open)
-               {
-                   dbConnection.Open();
-               }
-               command.CommandText = sql;
+                using (var command = dbConnection.CreateCommand())
+                {
+                    if (dbConnection.State != System.Data.ConnectionState.Open)
+                    {
+                        dbConnection.Open();
+                    }
+                    command.CommandText = sql;
 
 
-               var maThiSinhParam = command.CreateParameter();
-               maThiSinhParam.ParameterName = "@mathisinh";
-               maThiSinhParam.Value = mathisinh;
-               command.Parameters.Add(maThiSinhParam);
+                    var maThiSinhParam = command.CreateParameter();
+                    maThiSinhParam.ParameterName = "@mathisinh";
+                    maThiSinhParam.Value = mathisinh;
+                    command.Parameters.Add(maThiSinhParam);
 
 
-               var daGuiPhieuDuThiParam = command.CreateParameter();
-               daGuiPhieuDuThiParam.ParameterName = "@DaGuiPhieuDuThi";
-               daGuiPhieuDuThiParam.Value = DaGuiPhieuDuThi;
-               command.Parameters.Add(daGuiPhieuDuThiParam);
+                    var daGuiPhieuDuThiParam = command.CreateParameter();
+                    daGuiPhieuDuThiParam.ParameterName = "@DaGuiPhieuDuThi";
+                    daGuiPhieuDuThiParam.Value = DaGuiPhieuDuThi;
+                    command.Parameters.Add(daGuiPhieuDuThiParam);
 
 
-               command.ExecuteNonQuery();
-           }
-
+                    command.ExecuteNonQuery();
+                }
+            }
 
        }
         private string BuildWhereClauseForRegisterInformationQuery(RegisterInformationFilterObject filterObject)
@@ -309,7 +325,7 @@ namespace ACCI_Center.Dao.RegisterInformation
                 ? "WHERE " + string.Join(" AND ", whereClauses)
                 : string.Empty;
         }
-        private DbParameter[] BuidlerDbParametersForRegisterInformationQuery(RegisterInformationFilterObject filterObject)
+        private DbParameter[] BuidlerDbParametersForRegisterInformationQuery(RegisterInformationFilterObject filterObject, DbConnection dbConnection)
         {
             var dbParameters = new List<DbParameter>();
 
@@ -389,26 +405,116 @@ namespace ACCI_Center.Dao.RegisterInformation
         }
         public PagedResult<Entity.RegisterInformation> LoadRegisterInformation(int pageSize, int currentPageNumber, RegisterInformationFilterObject filterObject)
         {
-            string baseSql = @"
+            using (var dbConnection = dataClient.GetDbConnection())
+            {
+                string baseSql = @"
                 SELECT * 
                 FROM TTDANGKY";
-            string whereClause = BuildWhereClauseForRegisterInformationQuery(filterObject);
-            if (!string.IsNullOrEmpty(whereClause))
-            {
-                baseSql += " " + whereClause;
+                string whereClause = BuildWhereClauseForRegisterInformationQuery(filterObject);
+                if (!string.IsNullOrEmpty(whereClause))
+                {
+                    baseSql += " " + whereClause;
+                }
+                string orderByClause = "ORDER BY MaTTDangKy";
+
+                var dbParameters = BuidlerDbParametersForRegisterInformationQuery(filterObject, dbConnection);
+
+                return Helper.PaginationHelper.ExecutePagedAsync<Entity.RegisterInformation>(
+                    dbConnection,
+                    baseSql,
+                    orderByClause,
+                    registerInformationMapFunc,
+                    currentPageNumber,
+                    pageSize,
+                    dbParameters).GetAwaiter().GetResult();
             }
-            string orderByClause = "ORDER BY MaTTDangKy";
+        }
 
-            var dbParameters = BuidlerDbParametersForRegisterInformationQuery(filterObject);
+        public Entity.RegisterInformation? LoadRegisterInformationById(int maTTDangKy)
+        {
+            using (var dbConnection = dataClient.GetDbConnection())
+            {
+                try
+                {
+                    string sql = @"
+                SELECT * 
+                FROM TTDANGKY
+                WHERE MaTTDangKy = @MaTTDangKy";
+                    if (dbConnection.State != System.Data.ConnectionState.Open)
+                    {
+                        dbConnection.Open();
+                    }
+                    using (var command = dbConnection.CreateCommand())
+                    {
+                        command.CommandText = sql;
+                        var maTTDangKyParam = command.CreateParameter();
+                        maTTDangKyParam.ParameterName = "@MaTTDangKy";
+                        maTTDangKyParam.Value = maTTDangKy;
+                        command.Parameters.Add(maTTDangKyParam);
+                        using (var reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                return registerInformationMapFunc(reader);
+                            }
+                            else
+                            {
+                                return null; // No record found
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error while loading register information by ID", ex);
+                }
+            }
+        }
 
-            return Helper.PaginationHelper.ExecutePagedAsync<Entity.RegisterInformation>(
-                dbConnection,
-                baseSql,
-                orderByClause,
-                registerInformationMapFunc,
-                currentPageNumber,
-                pageSize,
-                dbParameters).GetAwaiter().GetResult();
+        public List<CandidateInformation> LoadCandidatesInformation(int maTTDangKy)
+        {
+            using(var  dbConnection = dataClient.GetDbConnection())
+            {
+                try
+                {
+                    string sql = """
+                        SELECT * FROM TTHISINH
+                        WHERE MaTTDangKy = @MaTTDangKy
+                        """;
+
+                    if (dbConnection.State != System.Data.ConnectionState.Open)
+                    {
+                        dbConnection.Open();
+                    }
+
+                    using (var command = dbConnection.CreateCommand())
+                    {
+                        command.CommandText = sql;
+                        var maTTDangKyParam = command.CreateParameter();
+                        maTTDangKyParam.ParameterName = "@MaTTDangKy";
+                        maTTDangKyParam.Value = maTTDangKy;
+                        command.Parameters.Add(maTTDangKyParam);
+                        using (var reader = command.ExecuteReader())
+                        {
+                            List<CandidateInformation> candidates = new List<CandidateInformation>();
+                            if(!reader.HasRows)
+                            {
+                                return candidates; // Return empty list if no candidates found
+                            }
+                            while (reader.Read())
+                            {
+                                var candidate = candidateInformationMapFunc(reader);
+                                candidates.Add(candidate);
+                            }
+                            return candidates;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error while loading candidates information", ex);
+                }
+            }
         }
     }
 }
