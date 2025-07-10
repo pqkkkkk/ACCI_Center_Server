@@ -71,7 +71,7 @@ namespace ACCI_Center.Controllers
 
             return Ok(registerResponse);
         }
-        [HttpPut("organization/approve/{registerInformationId}")]
+        [HttpPut("organization/approval/{registerInformationId}")]
         public ActionResult<ApproveOrganizationRegisterResponse> ApproveOrganizationRegister([FromRoute] int registerInformationId,
                                                                                              [FromBody] ApproveOrganizationRegisterRequest request)
         {
