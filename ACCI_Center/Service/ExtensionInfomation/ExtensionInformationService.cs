@@ -124,7 +124,6 @@ namespace ACCI_Center.Service.TTGiaHan
 
                     // Add extension information
                     request.extensionInformation.LoaiGiaHan = "Gia hạn miễn phí";
-                    request.extensionInformation.PhiGiaHan = 0;
                     request.extensionInformation.TrangThai = "Đã thanh toán";
                     request.extensionInformation.ThoiDiemGiaHan = DateTime.Now;
                     int extensionInformationId = extensionInformationDao.AddExtensionInformation(request.extensionInformation);

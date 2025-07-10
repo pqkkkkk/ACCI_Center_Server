@@ -1,5 +1,4 @@
 ﻿using ACCI_Center.Dto;
-using ACCI_Center.Dto.Reponse;
 using ACCI_Center.Entity;
 using ACCI_Center.FilterField;
 
@@ -18,11 +17,6 @@ namespace ACCI_Center.Dao.ExamSchedule
         }
 
         public List<int> GetAllFreeEmployeeIds(DateTime desiredExamTime, int testId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public List<AvailableExamScheduleReponse> GetAvailableExamSchedules()
         {
             throw new NotImplementedException();
         }

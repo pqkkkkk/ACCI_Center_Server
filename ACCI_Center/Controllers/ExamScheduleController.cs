@@ -3,11 +3,10 @@ using ACCI_Center.FilterField;
 using ACCI_Center.Service.ExamSchedule;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using ACCI_Center.Dto.Reponse;
 
 namespace ACCI_Center.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
     public class ExamScheduleController : ControllerBase
     {
@@ -51,23 +50,6 @@ namespace ACCI_Center.Controllers
             }
 
             return Ok(result);
-        }
-        [HttpGet("available-exam-schedules")]
-        public ActionResult<List<AvailableExamScheduleReponse>> GetAvailableExamSchedules()
-        {
-            try
-            {
-                var result = examScheduleService.LoadAvailableExamSchedules();
-                if (result == null || result.Count == 0)
-                {
-                    return NotFound("No available exam schedules found.");
-                }
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
-            }
         }
     }
 }

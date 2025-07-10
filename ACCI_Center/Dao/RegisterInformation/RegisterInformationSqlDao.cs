@@ -516,5 +516,48 @@ namespace ACCI_Center.Dao.RegisterInformation
                 }
             }
         }
+
+        public int UpdateRegisterInformation(Entity.RegisterInformation registerInformation)
+        {
+            using (var connection = dataClient.GetDbConnection())
+            {
+                try
+                {
+                    string sql = """
+                    UPDATE TTDANGKY
+                    SET 
+                        HoTen = @HoTen,
+                        SDT = @SDT,
+                        Email = @Email,
+                        DiaChi = @DiaChi,
+                        ThoiDiemDangKy = @ThoiDiemDangKy,
+                        MaLichThi = @MaLichThi,
+                        TrangThai = @TrangThai,
+                        LoaiKhachHang = @LoaiKhachHang
+                    WHERE MaTTDangKy = @MaTTDangKy;
+                    """;
+                    if (connection.State != System.Data.ConnectionState.Open)
+                    {
+                        connection.Open();
+                    }
+
+                    DbParameter[] parameters = buildParametersForRegisterInformation(registerInformation, connection);
+
+                    using (var command = connection.CreateCommand()) { 
+                        command.CommandText = sql;
+                        command.Parameters.AddRange(parameters);
+
+                        int rowsAffected = command.ExecuteNonQuery();
+                        return rowsAffected;
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error while updating register information", ex);
+                }
+
+            }
+        }
     }
 }

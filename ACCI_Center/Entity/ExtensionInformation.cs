@@ -14,7 +14,7 @@ namespace ACCI_Center.Entity
         public string? LoaiGiaHan { get; set; } = "";
         public string? LyDo { get; set; }
         public string? TrangThai { get; set; }
-        public double PhiGiaHan { get; set; }
+        public int MaLichThiMoi { get; set; } = 0;
         public int MaTTDangKy { get; set; } = 0;
         public event PropertyChangedEventHandler? PropertyChanged;
     }

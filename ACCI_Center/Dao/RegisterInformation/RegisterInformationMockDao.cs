@@ -40,5 +40,10 @@ namespace ACCI_Center.Dao.RegisterInformation
         {
             throw new NotImplementedException();
         }
+
+        public int UpdateRegisterInformation(Entity.RegisterInformation registerInformation)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

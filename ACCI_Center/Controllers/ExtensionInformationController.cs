@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ACCI_Center.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
     public class ExtensionInformationController : ControllerBase
     {

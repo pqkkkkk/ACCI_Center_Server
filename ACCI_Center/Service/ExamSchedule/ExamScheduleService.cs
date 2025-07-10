@@ -7,7 +7,6 @@ using ACCI_Center.FilterField;
 using ACCI_Center.Entity;
 using ACCI_Center.Dao.ExamSchedule;
 using ACCI_Center.Dto;
-using ACCI_Center.Dto.Reponse;
 
 namespace ACCI_Center.Service.ExamSchedule
 {
@@ -66,18 +65,6 @@ namespace ACCI_Center.Service.ExamSchedule
         public int NotifyAboutReceivingExamResult()
         {
             throw new NotImplementedException();
-        }
-        public List<AvailableExamScheduleReponse> LoadAvailableExamSchedules()
-        {
-            try
-            {
-                return examScheduleDao.GetAvailableExamSchedules();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"An error occurred: {ex.Message}");
-                return new List<AvailableExamScheduleReponse>();
-            }
         }
     }
 }

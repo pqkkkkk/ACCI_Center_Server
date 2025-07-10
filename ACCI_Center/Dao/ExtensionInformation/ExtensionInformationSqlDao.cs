@@ -27,7 +27,6 @@ namespace ACCI_Center.Dao.ExtensionInformation
                 LoaiGiaHan = reader.GetString(reader.GetOrdinal("LoaiGiaHan")),
                 LyDo = reader.GetString(reader.GetOrdinal("LyDo")),
                 TrangThai = reader.GetString(reader.GetOrdinal("TrangThai")),
-                PhiGiaHan = reader.GetFloat(reader.GetOrdinal("PhiGiaHan")),
                 MaTTDangKy = reader.GetInt32(reader.GetOrdinal("MaTTDangKy"))
             };
         };
@@ -74,10 +73,6 @@ namespace ACCI_Center.Dao.ExtensionInformation
                         trangThaiParam.Value = extension.TrangThai;
                         command.Parameters.Add(trangThaiParam);
 
-                        var phiParam = command.CreateParameter();
-                        phiParam.ParameterName = "@PhiGiaHan";
-                        phiParam.Value = extension.PhiGiaHan;
-                        command.Parameters.Add(phiParam);
 
                         var maTTParam = command.CreateParameter();
                         maTTParam.ParameterName = "@MaTTDangKy";

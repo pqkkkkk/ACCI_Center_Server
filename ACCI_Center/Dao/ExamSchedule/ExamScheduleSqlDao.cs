@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using ACCI_Center.Configuraion;
 using ACCI_Center.Dto;
-using ACCI_Center.Dto.Reponse;
 using ACCI_Center.Entity;
 using ACCI_Center.FilterField;
 using System.Data;
@@ -507,56 +506,7 @@ namespace ACCI_Center.Dao.ExamSchedule
                 }
             }
         }
-        public List<AvailableExamScheduleReponse> GetAvailableExamSchedules()
-        {
-            using (var dbConnection = dataClient.GetDbConnection())
-            {
-                string sql = """
-                SELECT 
-                    LT.MaLichThi,
-                    BT.TenBaiThi,
-                    BT.LoaiBaiThi,
-                    LT.NgayThi,
-                    LT.PhongThi,
-                    LT.SoLuongThiSinhHienTai,
-                    BT.SoLuongThiSinhToiDa,
-                    BT.GiaDangKy
-                FROM LICHTHI LT
-                JOIN BAITHI BT ON LT.BaiThi = BT.MaBaiThi
-                WHERE 
-                    LT.NgayThi > GETDATE()
-                    AND LT.SoLuongThiSinhHienTai < BT.SoLuongThiSinhToiDa
-                """;
-                var result = new List<AvailableExamScheduleReponse>();
-                using (var command = dbConnection.CreateCommand())
-                {
-                    command.CommandText = sql;
-                    if (dbConnection.State != ConnectionState.Open)
-                    {
-                        dbConnection.Open();
-                    }
-                    using (var reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            var examSchedule = new AvailableExamScheduleReponse
-                            {
-                                MaLichThi = reader.GetInt32(reader.GetOrdinal("MaLichThi")),
-                                TenBaiThi = reader.GetString(reader.GetOrdinal("TenBaiThi")),
-                                LoaiBaiThi = reader.GetString(reader.GetOrdinal("LoaiBaiThi")),
-                                NgayThi = reader.GetDateTime(reader.GetOrdinal("NgayThi")),
-                                PhongThi = reader.GetInt32(reader.GetOrdinal("PhongThi")),
-                                SoLuongThiSinhHienTai = reader.GetInt32(reader.GetOrdinal("SoLuongThiSinhHienTai")),
-                                SoLuongThiSinhToiDa = reader.GetInt32(reader.GetOrdinal("SoLuongThiSinhToiDa")),
-                                GiaDangKy = Convert.ToDouble(reader.GetValue(reader.GetOrdinal("GiaDangKy")))
-                            };
-                            result.Add(examSchedule);
-                        }
-                    }
-                }
-                return result;
-            }
-        }
+    
         public int GetTestIdByExamScheduleId(int examScheduleId)
         {
             using (var dbConnection = dataClient.GetDbConnection())
