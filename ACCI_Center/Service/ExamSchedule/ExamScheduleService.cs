@@ -7,7 +7,6 @@ using ACCI_Center.FilterField;
 using ACCI_Center.Entity;
 using ACCI_Center.Dao.ExamSchedule;
 using ACCI_Center.Dto;
-using ACCI_Center.Dto.Reponse;
 
 namespace ACCI_Center.Service.ExamSchedule
 {
@@ -38,9 +37,17 @@ namespace ACCI_Center.Service.ExamSchedule
             throw new NotImplementedException();
         }
 
-        public List<Entity.ExamSchedule> LoadExamSchedules()
+        public PagedResult<Entity.ExamSchedule> LoadExamSchedules(int pageSize, int currentPageNumber, ExamScheduleFilterObject filterObject)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return examScheduleDao.GetExamSchedules(pageSize, currentPageNumber, filterObject);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+                return new PagedResult<Entity.ExamSchedule>(null, 0, 0, 0);
+            }
         }
         public PagedResult<Test> LoadTests(int pageSize, int currentPageNumber, TestFilterObject testFilterObject)
         {
@@ -58,18 +65,6 @@ namespace ACCI_Center.Service.ExamSchedule
         public int NotifyAboutReceivingExamResult()
         {
             throw new NotImplementedException();
-        }
-        public List<AvailableExamScheduleReponse> LoadAvailableExamSchedules()
-        {
-            try
-            {
-                return examScheduleDao.GetAvailableExamSchedules();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"An error occurred: {ex.Message}");
-                return new List<AvailableExamScheduleReponse>();
-            }
         }
     }
 }

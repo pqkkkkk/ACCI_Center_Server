@@ -31,7 +31,9 @@ namespace ACCI_Center.Helper
                     if (dbParameters != null && dbParameters.Length > 0)
                         cmdCount.Parameters.AddRange(dbParameters);
 
-                    await dbConnection.OpenAsync();
+                    if(dbConnection.State != ConnectionState.Open)
+                         dbConnection.Open();
+
                     var result = await cmdCount.ExecuteScalarAsync();
                     totalItems = (result == null || result is DBNull)
                         ? 0
@@ -78,7 +80,8 @@ namespace ACCI_Center.Helper
                     cmdData.Parameters.AddRange(parametersWithPaging.ToArray());
 
                     if(dbConnection.State != ConnectionState.Open)
-                        await dbConnection.OpenAsync();
+                        dbConnection.Open();
+
                     using (var reader = await cmdData.ExecuteReaderAsync())
                     {
                         while (await reader.ReadAsync())

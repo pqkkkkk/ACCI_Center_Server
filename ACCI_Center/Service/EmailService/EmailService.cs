@@ -32,7 +32,8 @@ namespace ACCI_Center.Service.EmailService
 
 
            // 2. Tạo PDF
-           new BrowserFetcher().DownloadAsync().GetAwaiter().GetResult();            using var browser = Puppeteer.LaunchAsync(new LaunchOptions { Headless = true }).GetAwaiter().GetResult();
+           new BrowserFetcher().DownloadAsync().GetAwaiter().GetResult();            
+           using var browser = Puppeteer.LaunchAsync(new LaunchOptions { Headless = true }).GetAwaiter().GetResult();
            using var page = browser.NewPageAsync().GetAwaiter().GetResult();
 
 
@@ -48,7 +49,7 @@ namespace ACCI_Center.Service.EmailService
            var email = new MimeMessage();
            // email.Sender = new MailboxAddress(_mailSettings.DisplayName, _mailSettings.Mail);
            email.From.Add(new MailboxAddress(_mailSettings.DisplayName, _mailSettings.Mail));
-           email.To.Add(MailboxAddress.Parse("qthong2004@gmail.com"));
+           email.To.Add(MailboxAddress.Parse(candidate.Email));
            email.Subject = "Phiếu Dự Thi";
            var builder = new BodyBuilder
            {

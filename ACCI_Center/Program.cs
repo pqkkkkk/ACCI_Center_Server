@@ -11,6 +11,7 @@ using ACCI_Center.Service.TTDangKy;
 using ACCI_Center.Service.TTGiaHan;
 using Microsoft.Data.SqlClient;
 using ACCI_Center.Service.EmailService;
+using ACCI_Center.Service.ExtensionInfomation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,7 @@ builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailS
 // Add daos and services to the container.
 builder.Services.AddSingleton<IDataClient, DataClient>();
 builder.Services.AddSingleton<IExamScheduleDao, ExamScheduleSqlDao>();
+builder.Services.AddSingleton<IExamScheduleDaoV2, ExamScheduleSqlDaoV2>();
 builder.Services.AddSingleton<IRegisterInformationDao, RegisterInformationSqlDao>();
 builder.Services.AddSingleton<IInvoiceDao, InvoiceSqlDao>();
 builder.Services.AddSingleton<IExtensionInformationDao, ExtensionInformationSqlDao>();
@@ -29,6 +31,10 @@ builder.Services.AddSingleton<IRegisterInformationService, RegisterInformationSe
 builder.Services.AddSingleton<IOrganizationRegisterInformationService, OrganizationRegisterInformationService>();
 builder.Services.AddSingleton<IExtensionInformationService, ExtensionInformationService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
+builder.Services.AddSingleton<IRegisterInformationServiceV2, RegisterInformationServiceV2>();
+builder.Services.AddSingleton<IRegisterInformationValidation, RegisterInformationValidation>();
+builder.Services.AddSingleton<IExtensionInformationServiceV2, ExtensionInformationServiceV2>();
+builder.Services.AddSingleton<IExamScheduleServiceV2, ExamScheduleServiceV2>();
 
 // Add services to the container.
 builder.Services.AddControllers();

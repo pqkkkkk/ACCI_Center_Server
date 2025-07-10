@@ -3,6 +3,7 @@ using ACCI_Center.Dto;
 using ACCI_Center.Dto.Request;
 using ACCI_Center.Dto.Response;
 using ACCI_Center.Entity;
+using ACCI_Center.FilterField;
 using ACCI_Center.Helper;
 using ACCI_Center.Service.RegisterInformation;
 using ACCI_Center.Service.TTDangKy;
@@ -13,7 +14,7 @@ using NPOI.SS.UserModel;
 
 namespace ACCI_Center.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
     public class RegisterInformationController : ControllerBase
     {
@@ -41,14 +42,14 @@ namespace ACCI_Center.Controllers
             this.registerInformationService = registerInformationService;
         }
         [HttpPost("individual")]
-        public ActionResult<string> RegisterForIndividual([FromBody] IndividualRegisterRequest request)
+        public ActionResult<IndividualRegisterResponse> RegisterForIndividual([FromBody] IndividualRegisterRequest request)
         {
-            RegisterResult registerResult = registerInformationService.RegisterForIndividual(request);
-            if (registerResult == RegisterResult.UnknownError)
+            var response = registerInformationService.RegisterForIndividual(request);
+            if (response.statusCode != StatusCodes.Status200OK)
             {
-                return StatusCode(500, RegisterResult.UnknownError.ToString());
+                return StatusCode(response.statusCode, response.registerResult.ToString());
             }
-            return Ok(registerResult.ToString());
+            return Ok(response);
         }
         [HttpPost("organization")]
         public ActionResult<OrganizationRegisterResponse> RegisterForOrganization([FromForm] OrganizationRegisterRequest request)
@@ -76,9 +77,37 @@ namespace ACCI_Center.Controllers
             return Ok("Exam register forms released successfully.");
         }
         [HttpGet]
-        public ActionResult<PagedResult<Entity.RegisterInformation>> LoadRegisterInformations()
+        public ActionResult<PagedResult<Entity.RegisterInformation>> LoadRegisterInformations(
+            [FromQuery] int pageSize,
+            [FromQuery] int currentPageNumber,
+            [FromQuery] RegisterInformationFilterObject registerInformationFilterObject
+            )
         {
-            return null;
+            var result = registerInformationService.LoadRegisterInformation(pageSize, currentPageNumber, registerInformationFilterObject);
+
+            if (result.items == null)
+            {
+                return StatusCode(500, "An error occurred while loading register informations.");
+            }
+            if(result.items.Count() == 0)
+            {
+                return NotFound("No register information found.");
+            }
+
+            return Ok(result);
+        }
+        [HttpGet("{registerInformationId}")]
+        public ActionResult<RegisterInformationByIdResponse> LoadRegisterInformationsById(int registerInformationId,
+                                                                                          [FromQuery] string? parts)
+        {
+            var response = registerInformationService.LoadRegisterInformationById(registerInformationId, parts);
+
+            if (response.statusCode != StatusCodes.Status200OK)
+            {
+                return StatusCode(response.statusCode, response.message);
+            }
+
+            return Ok(response);
         }
 
     }

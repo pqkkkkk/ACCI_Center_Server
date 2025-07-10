@@ -1,16 +1,282 @@
 ﻿@model ACCI_Center.Entity.CandidateInformation
 
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
-    <title>Phiếu Dự Thi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phiếu Dự Thi - @Model.HoTen</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            line-height: 1.4;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .ticket {
+            max-width: 210mm;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border: 2px solid #333;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .organization {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #d32f2f;
+            margin: 15px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .exam-info {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .candidate-info {
+            display: grid;
+            gap: 15px;
+        }
+
+        .info-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .value {
+            font-size: 16px;
+            padding: 5px;
+            border-bottom: 1px solid #333;
+            min-height: 20px;
+        }
+
+        .photo-section {
+            text-align: center;
+        }
+
+        .photo-frame {
+            width: 120px;
+            height: 160px;
+            border: 2px solid #333;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f5f5f5;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .signature-section {
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+        }
+
+        .signature-box {
+            text-align: center;
+        }
+
+        .signature-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .signature-subtitle {
+            font-style: italic;
+            font-size: 14px;
+            margin-bottom: 50px;
+        }
+
+        .instructions {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            margin-top: 30px;
+            border-radius: 5px;
+        }
+
+        .instructions h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+
+        .instructions ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 5px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ccc;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .exam-code {
+            background-color: #e3f2fd;
+            padding: 10px;
+            border-left: 4px solid #2196f3;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    <h1>Phiếu Dự Thi</h1>
-    <p>Họ tên: @Model.HoTen</p>
-    <p>Số báo danh: @Model.MaTTThiSinh</p>
-    <p>Phòng thi:</p>
+    <div class="ticket">
+        <div class="header">
+            <div class="organization">TRUNG TÂM ACCI</div>
+            <div class="organization">AMERICAN CHAMBER OF COMMERCE</div>
+            <div class="title">PHIẾU DỰ THI</div>
+            <div class="exam-info">KỲ THI TIẾNG ANH - TIN HỌC</div>
+        </div>
+
+        <div class="content">
+            <div class="candidate-info">
+                <div class="info-row">
+                    <span class="label">Họ và tên:</span>
+                    <span class="value">@Model.HoTen</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="label">Số báo danh:</span>
+                    <span class="value">@Model.MaTTThiSinh</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="label">Ngày sinh:</span>
+                    <span class="value">"_____________"</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="label">CCCD/CMND:</span>
+                    <span class="value">"_____________"</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="label">Môn thi:</span>
+                    <span class="value">"_____________"</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="label">Cấp độ:</span>
+                    <span class="value">"_____________"</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="label">Phòng thi:</span>
+                    <span class="value">"_____________"</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="label">Số báo danh phòng:</span>
+                    <span class="value">"__"</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="label">Ngày thi:</span>
+                    <span class="value">"_____________"</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="label">Giờ thi:</span>
+                    <span class="value">"_____________"</span>
+                </div>
+            </div>
+
+            <div class="photo-section">
+                <div class="photo-frame">
+                    @if (string.IsNullOrEmpty(""))
+                    {
+                        <span>ẢNH THÍ SINH<br>3x4 cm</span>
+                        
+                    }
+@*                     else
+                    {
+                        <img src="@Model.AnhThiSinh" alt="Ảnh thí sinh" style="max-width: 100%; max-height: 100%; object-fit: cover;" />
+                    } *@
+                </div>
+                <div style="font-size: 12px; font-style: italic;">
+                    Dán ảnh và đóng dấu giáp lai
+                </div>
+            </div>
+        </div>
+
+        <div class="exam-code">
+            <strong>MÃ ĐỀ THI:</strong> Model.MaDeThi ?? "_________________" &nbsp;&nbsp;&nbsp;&nbsp;
+            <strong>SỐ PHÁCH:</strong> "_________________"
+        </div>
+
+        <div class="signature-section">
+            <div class="signature-box">
+                <div class="signature-title">THÍ SINH</div>
+                <div class="signature-subtitle">(Ký và ghi rõ họ tên)</div>
+                <div style="height: 60px; border-bottom: 1px solid #333;"></div>
+            </div>
+
+            <div class="signature-box">
+                <div class="signature-title">GIÁM THỊ</div>
+                <div class="signature-subtitle">(Ký và ghi rõ họ tên)</div>
+                <div style="height: 60px; border-bottom: 1px solid #333;"></div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>LƯU Ý QUAN TRỌNG:</h3>
+            <ul>
+                <li>Thí sinh phải có mặt tại phòng thi trước 15 phút</li>
+                <li>Mang theo CCCD/CMND gốc và phiếu dự thi</li>
+                <li>Không được mang tài liệu, điện thoại vào phòng thi</li>
+                <li>Tuân thủ nghiêm túc quy chế thi</li>
+                <li>Phiếu dự thi phải được giữ gìn cẩn thận</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>Địa chỉ: "Số 123, Đường ABC, Phường XYZ, TP. Dĩ An, Bình Dương"</p>
+            <p>Điện thoại: "(0274) 123-456" | Email: "info@acci.edu.vn"</p>
+        </div>
+    </div>
 </body>
 </html>
-
