@@ -13,15 +13,34 @@ namespace ACCI_Center.Service.RegisterInformation
     {
         private readonly IRegisterInformationDao registerInformationDao;
         private readonly IExamScheduleDao examScheduleDao;
+        private readonly IExamScheduleDaoV2 examScheduleDaoV2;
         private readonly IRegisterInformationValidation registerInformationValidation;
 
         public RegisterInformationServiceV2(IRegisterInformationDao registerInformationDao, IExamScheduleDao examScheduleDao,
+            IExamScheduleDaoV2 examScheduleDaoV2,
             IRegisterInformationValidation registerInformationValidation)
         {
             this.registerInformationDao = registerInformationDao;
             this.examScheduleDao = examScheduleDao;
             this.registerInformationValidation = registerInformationValidation;
         }
+
+        public ApproveOrganizationRegisterResponse ApproveOrganizationRegisterResponse(int registerInformationId, ApproveOrganizationRegisterRequest request)
+        {
+            try
+            {
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return new ApproveOrganizationRegisterResponse
+                {
+                    statusCode = StatusCodes.Status500InternalServerError,
+                    message = "An error occurred while approving the organization registration."
+                };
+            }
+        }
+
         public IndividualRegisterResponse CreateRegisterInformationForIndividual(IndividualRegisterRequest request)
         {
             try
@@ -29,7 +48,7 @@ namespace ACCI_Center.Service.RegisterInformation
                 using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     request.registerInformation.ThoiDiemDangKy = DateTime.Now;
-                    request.registerInformation.TrangThai = "Chưa thanh toán";
+                    request.registerInformation.TrangThaiThanhToan = "Chưa thanh toán";
                     request.registerInformation.MaLichThi = request.SelectedExamScheduleId;
                     request.registerInformation.LoaiKhachHang = "Cá nhân";
                     int registerInformationId = registerInformationDao.AddRegisterInformation(request.registerInformation);
@@ -75,7 +94,7 @@ namespace ACCI_Center.Service.RegisterInformation
             }
         }
 
-        public OrganizationRegisterResponse CreateRegisterInformationForOrganization(OrganizationRegisterRequest request)
+        public OrganizationRegisterResponse CreateRegisterInformationForOrganization(OrganizationRegisterRequestV2 request)
         {
             try
             {
@@ -101,7 +120,7 @@ namespace ACCI_Center.Service.RegisterInformation
                     // Add register information record
                     request.registerInformation.ThoiDiemDangKy = DateTime.Now;
                     request.registerInformation.LoaiKhachHang = "Đơn vị";
-                    request.registerInformation.TrangThai = "Chưa thanh toán";
+                    request.registerInformation.TrangThaiThanhToan = "Chưa thanh toán";
                     int registerInformationId = registerInformationDao.AddRegisterInformation(request.registerInformation);
                     if (registerInformationId == -1)
                     {
@@ -133,7 +152,7 @@ namespace ACCI_Center.Service.RegisterInformation
                     }
 
 
-                    var test = examScheduleDao.GetTestById(request.testId);
+                    var test = examScheduleDao.GetTestById(request.testInformation.testId);
                     // Commit the transaction
                     transaction.Complete();
                     return new OrganizationRegisterResponse

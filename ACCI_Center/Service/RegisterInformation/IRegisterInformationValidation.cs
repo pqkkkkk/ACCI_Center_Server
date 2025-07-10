@@ -6,5 +6,6 @@ namespace ACCI_Center.Service.RegisterInformation
     public interface IRegisterInformationValidation
     {
         public RegisterResult ValidateRegisterRequest(OrganizationRegisterRequest organizationRegisterRequest);
+        public RegisterResult ValidateRegisterRequest(OrganizationRegisterRequestV2 organizationRegisterRequest);
     }
 }

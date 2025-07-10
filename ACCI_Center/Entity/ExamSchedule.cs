@@ -15,7 +15,10 @@ namespace ACCI_Center.Entity
         public int BaiThi { get; set; }
         public int SoLuongThiSinhHienTai { get; set; }
         public bool DaNhapKetQuaThi { get; set; }
+        public bool DaPhatHanhPhieuDuThi { get; set; }
         public bool DaThongBaoKetQuaThi { get; set; }
+        public string TrangThaiDuyet { get; set; } = "Chưa duyệt";
+        public string LoaiLichThi { get; set; } = "Tự do"; // Loại lịch thi, có thể là "Lịch thi tự do" hoặc "Lịch thi cho đơn vị"
         public int PhongThi { get; set; }
     }
 }

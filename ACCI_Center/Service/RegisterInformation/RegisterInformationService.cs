@@ -43,7 +43,7 @@ namespace ACCI_Center.Service.TTDangKy
                 using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     individualRegisterRequest.registerInformation.ThoiDiemDangKy = DateTime.Now;
-                    individualRegisterRequest.registerInformation.TrangThai = "Chưa thanh toán";
+                    individualRegisterRequest.registerInformation.TrangThaiThanhToan = "Chưa thanh toán";
                     individualRegisterRequest.registerInformation.MaLichThi = individualRegisterRequest.SelectedExamScheduleId;
                     individualRegisterRequest.registerInformation.LoaiKhachHang = "Cá nhân";
                     int registerInformationId = registerInformationDao.AddRegisterInformation(individualRegisterRequest.registerInformation);
