@@ -33,7 +33,7 @@ namespace ACCI_Center.Dao.RegisterInformation
                 DiaChi = reader.GetString(reader.GetOrdinal("DiaChi")),
                 ThoiDiemDangKy = reader.GetDateTime(reader.GetOrdinal("ThoiDiemDangKy")),
                 MaLichThi = reader.GetInt32(reader.GetOrdinal("MaLichThi")),
-                TrangThai = reader.GetString(reader.GetOrdinal("TrangThai")),
+                TrangThaiThanhToan = reader.GetString(reader.GetOrdinal("TrangThai")),
                 LoaiKhachHang = reader.GetString(reader.GetOrdinal("LoaiKhachHang"))
             };
         };
@@ -86,7 +86,7 @@ namespace ACCI_Center.Dao.RegisterInformation
 
             var trangThaiParam = dbConnection.CreateCommand().CreateParameter();
             trangThaiParam.ParameterName = "@TrangThai";
-            trangThaiParam.Value = registerInformation.TrangThai;
+            trangThaiParam.Value = registerInformation.TrangThaiThanhToan;
             parameters.Add(trangThaiParam);
 
             var loaiKhachHangParam = dbConnection.CreateCommand().CreateParameter();

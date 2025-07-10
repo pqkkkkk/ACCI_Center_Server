@@ -163,7 +163,7 @@ namespace ACCI_Center.Service.RegisterInformation
                     organizationRegisterRequest.registerInformation.MaLichThi = examScheduleId;
                     organizationRegisterRequest.registerInformation.ThoiDiemDangKy = DateTime.Now;
                     organizationRegisterRequest.registerInformation.LoaiKhachHang = "Đơn vị";
-                    organizationRegisterRequest.registerInformation.TrangThai = "Chưa thanh toán";
+                    organizationRegisterRequest.registerInformation.TrangThaiThanhToan = "Chưa thanh toán";
                     int registerInformationId = registerInformationDao.AddRegisterInformation(organizationRegisterRequest.registerInformation);
                     if (registerInformationId == -1)
                     {

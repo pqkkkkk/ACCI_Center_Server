@@ -55,7 +55,7 @@ namespace ACCI_Center.Controllers
             return Ok(response);
         }
         [HttpPost("organization")]
-        public ActionResult<OrganizationRegisterResponse> RegisterForOrganization([FromForm] OrganizationRegisterRequest request)
+        public ActionResult<OrganizationRegisterResponse> RegisterForOrganization([FromForm] OrganizationRegisterRequestV2 request)
         {
             IFormFile candidatesInformationFile = request.candidateInformationsFile;
             List<CandidateInformation> candidatesInformation = ExcelReaderHelper.ReadExcelFileFormIFormFile<CandidateInformation>(candidatesInformationFile, candidateInformationMapper);
@@ -71,6 +71,17 @@ namespace ACCI_Center.Controllers
 
             return Ok(registerResponse);
         }
+        [HttpPut("organization/approval/{registerInformationId}")]
+        public ActionResult<ApproveOrganizationRegisterResponse> ApproveOrganizationRegister([FromRoute] int registerInformationId,
+                                                                                             [FromBody] ApproveOrganizationRegisterRequest request)
+        {
+            var response = registerInformationServiceV2.ApproveOrganizationRegisterResponse(registerInformationId, request);
+            if (response.statusCode != StatusCodes.Status200OK)
+            {
+                return StatusCode(response.statusCode, response.message);
+            }
+            return Ok(response);
 
+        }
     }
 }

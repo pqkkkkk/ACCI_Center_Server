@@ -101,5 +101,27 @@ namespace ACCI_Center.Service.RegisterInformation
 
             return RegisterResult.Success;
         }
+
+        public RegisterResult ValidateRegisterRequest(OrganizationRegisterRequestV2 organizationRegisterRequest)
+        {
+            if (!IsValidOrganizationInformation(organizationRegisterRequest.registerInformation))
+            {
+                return RegisterResult.InvalidOrganizationInformation;
+            }
+            if (!IsValidTestInformation(organizationRegisterRequest.testInformation.testId, organizationRegisterRequest.testInformation.testName))
+            {
+                return RegisterResult.InvalidTestInformation;
+            }
+            if (!IsValidCandidateQuantity(organizationRegisterRequest.candidatesInformation.Count, organizationRegisterRequest.testInformation.testId))
+            {
+                return RegisterResult.CandidateQuantityTooLow;
+            }
+            if (!IsValidDesiredExamTime(organizationRegisterRequest.testInformation.desiredExamTime, organizationRegisterRequest.testInformation.testId))
+            {
+                return RegisterResult.NoAvailableTimeSlot;
+            }
+
+            return RegisterResult.Success;
+        }
     }
 }
