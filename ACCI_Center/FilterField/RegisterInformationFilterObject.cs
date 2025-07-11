@@ -10,7 +10,8 @@
         public DateTime? ThoiDiemDangKyBatDau { get; set; }
         public DateTime? ThoiDiemDangKyKetThuc { get; set; }
         public int? MaLichThi { get; set; }
-        public string? TrangThai { get; set; }
+        public string? TrangThaiThanhToan { get; set; }
+        public string? TrangThaiDangKy { get; set; }
         public string? LoaiKhachHang { get; set; }
     }
 }

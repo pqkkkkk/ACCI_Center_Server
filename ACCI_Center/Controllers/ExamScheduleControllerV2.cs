@@ -28,5 +28,25 @@ namespace ACCI_Center.Controllers
             }
             return Ok(response);
         }
+        [HttpGet("employee/available")]
+        public ActionResult<AvailableEmployeesResponse> GetAvailableEmployees([FromQuery] DateTime desiredExamTime, [FromQuery] int testId)
+        {
+            var response = examScheduleServiceV2.GetAvailableEmployees(desiredExamTime, testId);
+            if (response.statusCode != StatusCodes.Status200OK)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Failed to retrieve available employees.");
+            }
+            return Ok(response);
+        }
+        [HttpGet("room/available")]
+        public ActionResult<AvailableRoomsResponse> GetAvailableRooms([FromQuery] DateTime desiredExamTime, [FromQuery] int testId)
+        {
+            var response = examScheduleServiceV2.GetAvailableRooms(desiredExamTime, testId);
+            if (response.statusCode != StatusCodes.Status200OK)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Failed to retrieve available rooms.");
+            }
+            return Ok(response);
+        }
     }
 }

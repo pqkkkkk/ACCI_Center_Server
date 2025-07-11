@@ -10,5 +10,6 @@
         public bool? DaPhatHanhPhieuDangKyThi { get; set; } = null;
         public bool? DaThongBaoKetQuaThi { get; set; } = null;
         public int? PhongThi { get; set; } = null;
+        public string LoaiLichThi { get; set; } = "Lịch thi tự do";
     }
 }

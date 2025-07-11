@@ -44,7 +44,8 @@ namespace ACCI_Center.Dao.ExamSchedule
                 SoLuongThiSinhHienTai = reader.GetInt32(reader.GetOrdinal("SoLuongThiSinhHienTai")),
                 DaNhapKetQuaThi = reader.GetBoolean(reader.GetOrdinal("DaNhapKetQuaThi")),
                 DaThongBaoKetQuaThi = reader.GetBoolean(reader.GetOrdinal("DaThongBaoKetQuaThi")),
-                PhongThi = reader.GetInt32(reader.GetOrdinal("PhongThi"))
+                PhongThi = reader.IsDBNull(reader.GetOrdinal("PhongThi")) ? 0 : reader.GetInt32(reader.GetOrdinal("PhongThi")),
+                LoaiLichThi = reader.IsDBNull(reader.GetOrdinal("LoaiLichThi")) ? "Không xác định" : reader.GetString(reader.GetOrdinal("LoaiLichThi"))
             };
         };
         private string BuildWhereClauseForTestQuery(TestFilterObject testFilterObject)
@@ -628,6 +629,10 @@ namespace ACCI_Center.Dao.ExamSchedule
             {
                 whereClauses.Add("PhongThi = @PhongThi");
             }
+            if(filterObject.LoaiLichThi != null && filterObject.LoaiLichThi != "Tất cả")
+            {
+                whereClauses.Add("LoaiLichThi = @LoaiLichThi");
+            }
 
             return whereClauses.Count > 0 ? "WHERE " + string.Join(" AND ", whereClauses) : string.Empty;
         }
@@ -689,6 +694,13 @@ namespace ACCI_Center.Dao.ExamSchedule
                 var param = dbConnection.CreateCommand().CreateParameter();
                 param.ParameterName = "@PhongThi";
                 param.Value = filterObject.PhongThi.Value;
+                parameters.Add(param);
+            }
+            if(filterObject.LoaiLichThi != null && filterObject.LoaiLichThi != "Tất cả")
+            {
+                var param = dbConnection.CreateCommand().CreateParameter();
+                param.ParameterName = "@LoaiLichThi";
+                param.Value = filterObject.LoaiLichThi;
                 parameters.Add(param);
             }
 

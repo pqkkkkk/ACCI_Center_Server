@@ -24,9 +24,10 @@ namespace ACCI_Center.Dto.Request
     {
         [FromJson]
         public Entity.RegisterInformation registerInformation { get; set; }
+        [FromJson]
         public TestInformation testInformation { get; set; }
         [FromJson]
-        public List<Entity.CandidateInformation> candidatesInformation { get; set; } = [];
+        public List<Entity.CandidateInformation> candidatesInformation { get; set; } = new List<CandidateInformation>();
         public IFormFile candidateInformationsFile { get; set; }
     }
 }
