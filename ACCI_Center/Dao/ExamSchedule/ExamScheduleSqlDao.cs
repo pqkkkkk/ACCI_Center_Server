@@ -416,7 +416,7 @@ namespace ACCI_Center.Dao.ExamSchedule
             using (var dbConnection = dataClient.GetDbConnection())
             {
                 List<Entity.ExamSchedule> examSchedule = new List<Entity.ExamSchedule>();
-                string sql = "SELECT * FROM LICHTHI WHERE NgayThi BETWEEN GETDATE() AND DATEADD(WEEK, 2, GETDATE()) ";
+                string sql = "SELECT * FROM LICHTHI WHERE NgayThi BETWEEN GETDATE() AND DATEADD(WEEK, 1, GETDATE()) ";
                 using (var command = dbConnection.CreateCommand())
                 {
                     if (dbConnection.State != ConnectionState.Open)
@@ -428,16 +428,7 @@ namespace ACCI_Center.Dao.ExamSchedule
                     {
                         while (reader.Read())
                         {
-                            var schedule = new Entity.ExamSchedule
-                            {
-                                MaLichThi = reader.GetInt32(reader.GetOrdinal("MaLichThi")),
-                                BaiThi = reader.GetInt32(reader.GetOrdinal("BaiThi")),
-                                NgayThi = reader.GetDateTime(reader.GetOrdinal("NgayThi")),
-                                SoLuongThiSinhHienTai = reader.GetInt32(reader.GetOrdinal("SoLuongThiSinhHienTai")),
-                                DaNhapKetQuaThi = reader.GetBoolean(reader.GetOrdinal("DaNhapKetQuaThi")),
-                                DaThongBaoKetQuaThi = reader.GetBoolean(reader.GetOrdinal("DaThongBaoKetQuaThi")),
-                                PhongThi = reader.GetInt32(reader.GetOrdinal("PhongThi"))
-                            };
+                            var schedule = examScheduleMapFunc(reader);
                             examSchedule.Add(schedule);
                         }
 
@@ -617,10 +608,10 @@ namespace ACCI_Center.Dao.ExamSchedule
             {
                 whereClauses.Add("DaNhapKetQuaThi = @DaNhapKetQuaThi");
             }
-            //if (filterObject.DaPhatHanhPhieuDangKyThi.HasValue)
-            //{
-            //    whereClauses.Add("DaPhatHanhPhieuDangKyThi = @DaPhatHanhPhieuDangKyThi");
-            //}
+            if (filterObject.DaPhatHanhPhieuDuThi.HasValue)
+            {
+                whereClauses.Add("DaPhatHanhPhieuDuThi = @DaPhatHanhPhieuDuThi");
+            }
             if (filterObject.DaThongBaoKetQuaThi.HasValue)
             {
                 whereClauses.Add("DaThongBaoKetQuaThi = @DaThongBaoKetQuaThi");
@@ -675,13 +666,13 @@ namespace ACCI_Center.Dao.ExamSchedule
                 param.Value = filterObject.DaNhapKetQuaThi.Value;
                 parameters.Add(param);
             }
-            //if (filterObject.DaPhatHanhPhieuDangKyThi.HasValue)
-            //{
-            //    var param = dbConnection.CreateCommand().CreateParameter();
-            //    param.ParameterName = "@DaPhatHanhPhieuDangKyThi";
-            //    param.Value = filterObject.DaPhatHanhPhieuDangKyThi.Value;
-            //    parameters.Add(param);
-            //}
+            if (filterObject.DaPhatHanhPhieuDuThi.HasValue)
+            {
+                var param = dbConnection.CreateCommand().CreateParameter();
+                param.ParameterName = "@DaPhatHanhPhieuDuThi";
+                param.Value = filterObject.DaPhatHanhPhieuDuThi.Value;
+                parameters.Add(param);
+            }
             if (filterObject.DaThongBaoKetQuaThi.HasValue)
             {
                 var param = dbConnection.CreateCommand().CreateParameter();

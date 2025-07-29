@@ -69,12 +69,23 @@ namespace ACCI_Center.Controllers
             return Ok(registerResponse);
         }
         [HttpPut("CandidateInformation/ExamRegisterForm")]
-        public ActionResult<string> ReleaseExamRegisterForms()
+        public ActionResult<ReleaseExamRegisterFormsResponse> ReleaseExamRegisterForms()
         {
             // Logic to release exam register forms for candidates
             // This is a placeholder implementation
             int soLuong = registerInformationService.ReleaseExamRegisterForm();
-            return Ok("Exam register forms released successfully.");
+
+            if (soLuong <= 0)
+            {
+                return StatusCode(500, "An error occurred while releasing exam register forms.");
+            }
+
+            return Ok(new ReleaseExamRegisterFormsResponse
+            {
+                count = soLuong,
+                message = $"{soLuong} exam register forms released successfully.",
+                statusCode = StatusCodes.Status200OK
+            });
         }
         [HttpGet]
         public ActionResult<PagedResult<Entity.RegisterInformation>> LoadRegisterInformations(
