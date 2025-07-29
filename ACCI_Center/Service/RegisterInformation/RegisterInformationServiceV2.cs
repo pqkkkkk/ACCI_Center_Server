@@ -53,8 +53,6 @@ namespace ACCI_Center.Service.RegisterInformation
                     statusCode = StatusCodes.Status200OK,
                     message = "Organization registration approved successfully.",
                 };
-
-
             }
             catch (Exception ex)
             {
@@ -145,6 +143,7 @@ namespace ACCI_Center.Service.RegisterInformation
                     request.registerInformation.TrangThaiThanhToan = "Chưa thanh toán";
                     request.registerInformation.TrangThaiDangKy = "Chưa duyệt";
                     request.registerInformation.MaLichThi = examScheduleId;
+                    
                     int registerInformationId = registerInformationDao.AddRegisterInformation(request.registerInformation);
                     if (registerInformationId == -1)
                     {

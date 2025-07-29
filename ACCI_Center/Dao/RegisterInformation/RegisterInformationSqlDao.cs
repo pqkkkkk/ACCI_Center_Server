@@ -94,7 +94,7 @@ namespace ACCI_Center.Dao.RegisterInformation
             trangThaiDangKyParam.ParameterName = "@TrangThaiDangKy";
             trangThaiDangKyParam.Value = registerInformation.TrangThaiDangKy;
             parameters.Add(trangThaiDangKyParam);
-
+            
             var loaiKhachHangParam = dbConnection.CreateCommand().CreateParameter();
             loaiKhachHangParam.ParameterName = "@LoaiKhachHang";
             loaiKhachHangParam.Value = registerInformation.LoaiKhachHang;
