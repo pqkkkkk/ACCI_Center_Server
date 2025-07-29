@@ -29,10 +29,6 @@ namespace ACCI_Center.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while fetching exam schedules.");
             }
-            if (result.items.Count() == 0)
-            {
-                return NotFound("No exam schedules found.");
-            }
             return Ok(result);
         }
         [HttpGet("Test")]

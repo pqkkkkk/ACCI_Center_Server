@@ -10,5 +10,6 @@ namespace ACCI_Center.Service.EmailService
    public interface IEmailService
    {
        bool SendEmail(Entity.CandidateInformation candidate);
-   }
+       bool SendEmail(ExamRegisterFormViewModel examRegisterFormViewModel);
+    }
 }

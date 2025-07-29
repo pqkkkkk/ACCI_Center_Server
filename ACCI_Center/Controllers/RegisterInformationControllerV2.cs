@@ -26,6 +26,8 @@ namespace ACCI_Center.Controllers
                 HoTen = row.GetCell(0)?.ToString() ?? string.Empty,
                 SDT = row.GetCell(1)?.ToString() ?? string.Empty,
                 Email = row.GetCell(2)?.ToString() ?? string.Empty,
+                CCCD = row.GetCell(3)?.ToString() ?? string.Empty,
+                NgaySinh = row.GetCell(4)?.DateCellValue ?? DateTime.MinValue,
                 DaGuiPhieuDuThi = false,
                 DaNhanChungChi = false
             };
@@ -70,6 +72,23 @@ namespace ACCI_Center.Controllers
             }
 
             return Ok(registerResponse);
+        }
+        [HttpGet("organization/validate/{registerInformationId}")]
+        public ActionResult<ValidateRegisterInformationResponse> ValidateOrganizationRegister([FromRoute] int registerInformationId)
+        {
+            RegisterResult validateResult = registerInformationServiceV2.ValidateOrganizationRegisterInformation(registerInformationId);
+
+            if (validateResult == RegisterResult.UnknownError)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while validating the organization registration.");
+            }
+
+            return Ok(new ValidateRegisterInformationResponse
+            {
+                statusCode = StatusCodes.Status200OK,
+                message = validateResult,
+                isValid = validateResult == RegisterResult.Success
+            });
         }
         [HttpPut("organization/approval/{registerInformationId}")]
         public ActionResult<ApproveOrganizationRegisterResponse> ApproveOrganizationRegister([FromRoute] int registerInformationId,

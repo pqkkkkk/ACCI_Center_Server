@@ -23,13 +23,36 @@ namespace ACCI_Center.Service.RegisterInformation
             this.registerInformationDao = registerInformationDao;
             this.examScheduleDao = examScheduleDao;
             this.registerInformationValidation = registerInformationValidation;
+            this.examScheduleDaoV2 = examScheduleDaoV2;
         }
 
         public ApproveOrganizationRegisterResponse ApproveOrganizationRegisterResponse(int registerInformationId, ApproveOrganizationRegisterRequest request)
         {
             try
             {
-                return null;
+                // Load the register information by ID
+                var registerInformaion = registerInformationDao.LoadRegisterInformationById(registerInformationId);
+
+                // Load corresponding exam schedule
+                var examSchedule = examScheduleDao.GetExamScheduleById(registerInformaion.MaLichThi ?? 0);
+
+                // Update the register information status to "Đã duyệt"
+                registerInformaion.TrangThaiDangKy = "Đã duyệt";
+                registerInformationDao.UpdateRegisterInformation(registerInformaion);
+
+                // Update the exam schedule status to "Đã duyệt"
+                // Update the exam schedule's employee assignments
+                // Update the exam schedule's room assignment
+                examSchedule.PhongThi = request.roomId;
+                examSchedule.TrangThaiDuyet = "Đã duyệt";
+                examSchedule.LoaiLichThi = "Lịch thi đơn vị";
+                examScheduleDaoV2.UpdateExamSchedule(examSchedule, request.supervisorIds);
+
+                return new ApproveOrganizationRegisterResponse
+                {
+                    statusCode = StatusCodes.Status200OK,
+                    message = "Organization registration approved successfully.",
+                };
             }
             catch (Exception ex)
             {
@@ -49,6 +72,7 @@ namespace ACCI_Center.Service.RegisterInformation
                 {
                     request.registerInformation.ThoiDiemDangKy = DateTime.Now;
                     request.registerInformation.TrangThaiThanhToan = "Chưa thanh toán";
+                    request.registerInformation.TrangThaiDangKy = "Đã duyệt";
                     request.registerInformation.MaLichThi = request.SelectedExamScheduleId;
                     request.registerInformation.LoaiKhachHang = "Cá nhân";
                     int registerInformationId = registerInformationDao.AddRegisterInformation(request.registerInformation);
@@ -100,27 +124,26 @@ namespace ACCI_Center.Service.RegisterInformation
             {
                 using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    // Validate the registration request
-                    RegisterResult testRegisterResult = registerInformationValidation.ValidateRegisterRequest(request);
-                    if (testRegisterResult != RegisterResult.Success)
+                    // Create the exam schedule
+                    var test = examScheduleDao.GetTestById(request.testInformation.testId);
+                    var examSchedule = new Entity.ExamSchedule
                     {
-                        return new OrganizationRegisterResponse
-                        {
-                            registerInformation = request.registerInformation,
-                            candidatesInformation = request.candidatesInformation,
-                            test = null,
-                            examSchedule = null,
-                            invoice = null,
-                            registerResult = testRegisterResult,
-                            statusCode = 400
-                        };
-                    }
+                        BaiThi = test.MaBaiThi,
+                        NgayThi = request.testInformation.desiredExamTime,
+                        LoaiLichThi = "Lịch thi đơn vị",
+                        TrangThaiDuyet = "Chưa duyệt",
+                        SoLuongThiSinhHienTai = request.candidatesInformation.Count,
+                        ThoiDiemKetThuc = request.testInformation.desiredExamTime.AddMinutes(test.ThoiGianThi),
+                    };
+                    int examScheduleId = examScheduleDaoV2.AddExamSchedule(examSchedule, []);
 
-                    
                     // Add register information record
                     request.registerInformation.ThoiDiemDangKy = DateTime.Now;
                     request.registerInformation.LoaiKhachHang = "Đơn vị";
                     request.registerInformation.TrangThaiThanhToan = "Chưa thanh toán";
+                    request.registerInformation.TrangThaiDangKy = "Chưa duyệt";
+                    request.registerInformation.MaLichThi = examScheduleId;
+                    
                     int registerInformationId = registerInformationDao.AddRegisterInformation(request.registerInformation);
                     if (registerInformationId == -1)
                     {
@@ -151,8 +174,6 @@ namespace ACCI_Center.Service.RegisterInformation
                         };
                     }
 
-
-                    var test = examScheduleDao.GetTestById(request.testInformation.testId);
                     // Commit the transaction
                     transaction.Complete();
                     return new OrganizationRegisterResponse
@@ -160,6 +181,7 @@ namespace ACCI_Center.Service.RegisterInformation
                         registerInformation = request.registerInformation,
                         candidatesInformation = request.candidatesInformation,
                         test = test,
+                        examSchedule = examSchedule,
                         registerResult = RegisterResult.Success,
                         statusCode = 200
                     };
@@ -217,6 +239,91 @@ namespace ACCI_Center.Service.RegisterInformation
                     message = "An error occurred while updating the registration information."
                 };
             }
+        }
+
+        public RegisterResult ValidateOrganizationRegisterInformation(int registerInformationId)
+        {
+            var registerInformation = registerInformationDao.LoadRegisterInformationById(registerInformationId);
+            if (!IsValidOrganizationInformation(registerInformation))
+            {
+                return RegisterResult.InvalidOrganizationInformation;
+            }
+
+            var examSchedule = examScheduleDao.GetExamScheduleById(registerInformation.MaLichThi ?? 0);
+
+            if (!IsValidCandidateQuantity(examSchedule.SoLuongThiSinhHienTai, examSchedule.BaiThi))
+            {
+                return RegisterResult.CandidateQuantityTooLow;
+            }
+            if (!IsValidDesiredExamTime(examSchedule.NgayThi, examSchedule.BaiThi))
+            {
+                return RegisterResult.NoAvailableTimeSlot;
+            }
+
+            return RegisterResult.Success;
+        }
+        public bool IsValidOrganizationInformation(Entity.RegisterInformation registerInformation)
+        {
+            if (registerInformation == null)
+                return false;
+
+            if(!registerInformation.LoaiKhachHang.Equals("Đơn vị"))
+                return false;
+
+            // Check required fields are not null or empty
+            if (string.IsNullOrWhiteSpace(registerInformation.HoTen) ||
+                string.IsNullOrWhiteSpace(registerInformation.SDT) ||
+                string.IsNullOrWhiteSpace(registerInformation.Email) ||
+                string.IsNullOrWhiteSpace(registerInformation.DiaChi))
+            {
+                return false;
+            }
+
+            // Validate email format
+            var emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            if (!System.Text.RegularExpressions.Regex.IsMatch(registerInformation.Email, emailPattern))
+            {
+                return false;
+            }
+
+            // Validate phone number: starts with 0, 10 digits
+            var phonePattern = @"^0\d{9}$";
+            if (!System.Text.RegularExpressions.Regex.IsMatch(registerInformation.SDT, phonePattern))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool IsValidDesiredExamTime(DateTime desiredExamTime, int testId)
+        {
+            List<int> emptyRoomIds = examScheduleDao.GetAllEmptyRoomIds(desiredExamTime, testId);
+            if (emptyRoomIds.Count == 0)
+            {
+                return false;
+            }
+
+            List<int> freeEmployeeIds = examScheduleDao.GetAllFreeEmployeeIds(desiredExamTime, testId);
+            if (freeEmployeeIds.Count == 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
+        public bool IsValidCandidateQuantity(int candidateCount, int tesetId)
+        {
+            Entity.Test test = examScheduleDao.GetTestById(tesetId);
+            int minimumCandidateCount = test.SoLuongThiSinhToiThieu;
+            int maximumCandidateCount = test.SoLuongThiSinhToiDa;
+
+            if (candidateCount < minimumCandidateCount || candidateCount > maximumCandidateCount)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

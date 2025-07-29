@@ -1,11 +1,11 @@
-﻿@model ACCI_Center.Entity.CandidateInformation
+﻿@model ACCI_Center.ExamRegisterFormViewModel
 
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phiếu Dự Thi - @Model.HoTen</title>
+    <title>Phiếu Dự Thi - @Model.candidateInformation.HoTen</title>
     <style>
         body {
             font-family: 'Times New Roman', serif;
@@ -176,52 +176,43 @@
             <div class="candidate-info">
                 <div class="info-row">
                     <span class="label">Họ và tên:</span>
-                    <span class="value">@Model.HoTen</span>
+                    <span class="value">@Model.candidateInformation.HoTen</span>
                 </div>
 
                 <div class="info-row">
                     <span class="label">Số báo danh:</span>
-                    <span class="value">@Model.MaTTThiSinh</span>
+                    <span class="value">TS + @Model.candidateInformation.MaTTThiSinh</span>
                 </div>
 
                 <div class="info-row">
                     <span class="label">Ngày sinh:</span>
-                    <span class="value">"_____________"</span>
+                    <span class="value">@Model.candidateInformation.NgaySinh</span>
                 </div>
 
                 <div class="info-row">
                     <span class="label">CCCD/CMND:</span>
-                    <span class="value">"_____________"</span>
+                    <span class="value">@Model.candidateInformation.CCCD</span>
                 </div>
 
                 <div class="info-row">
                     <span class="label">Môn thi:</span>
-                    <span class="value">"_____________"</span>
+                    <span class="value">@Model.test.TenBaiThi</span>
                 </div>
 
-                <div class="info-row">
-                    <span class="label">Cấp độ:</span>
-                    <span class="value">"_____________"</span>
-                </div>
 
                 <div class="info-row">
                     <span class="label">Phòng thi:</span>
-                    <span class="value">"_____________"</span>
-                </div>
-
-                <div class="info-row">
-                    <span class="label">Số báo danh phòng:</span>
-                    <span class="value">"__"</span>
+                    <span class="value">@Model.examSchedule.PhongThi</span>
                 </div>
 
                 <div class="info-row">
                     <span class="label">Ngày thi:</span>
-                    <span class="value">"_____________"</span>
+                    <span class="value">@Model.examSchedule.NgayThi.ToString("dd/MM/yyyy")</span>
                 </div>
 
                 <div class="info-row">
                     <span class="label">Giờ thi:</span>
-                    <span class="value">"_____________"</span>
+                    <span class="value">@Model.examSchedule.NgayThi.ToString("HH:mm")</span>
                 </div>
             </div>
 
@@ -244,8 +235,7 @@
         </div>
 
         <div class="exam-code">
-            <strong>MÃ ĐỀ THI:</strong> Model.MaDeThi ?? "_________________" &nbsp;&nbsp;&nbsp;&nbsp;
-            <strong>SỐ PHÁCH:</strong> "_________________"
+            <strong>MÃ BÀI THI:</strong> BT+@Model.test.MaBaiThi ?? "_________________" &nbsp;&nbsp;&nbsp;&nbsp;
         </div>
 
         <div class="signature-section">

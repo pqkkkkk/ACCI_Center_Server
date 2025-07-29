@@ -33,7 +33,8 @@ namespace ACCI_Center.Dao.RegisterInformation
                 DiaChi = reader.GetString(reader.GetOrdinal("DiaChi")),
                 ThoiDiemDangKy = reader.GetDateTime(reader.GetOrdinal("ThoiDiemDangKy")),
                 MaLichThi = reader.GetInt32(reader.GetOrdinal("MaLichThi")),
-                TrangThaiThanhToan = reader.GetString(reader.GetOrdinal("TrangThai")),
+                TrangThaiThanhToan = reader.GetString(reader.GetOrdinal("TrangThaiThanhToan")),
+                TrangThaiDangKy = reader.GetString(reader.GetOrdinal("TrangThaiDangKy")),
                 LoaiKhachHang = reader.GetString(reader.GetOrdinal("LoaiKhachHang"))
             };
         };
@@ -84,11 +85,16 @@ namespace ACCI_Center.Dao.RegisterInformation
             maLichThiParam.Value = registerInformation.MaLichThi;
             parameters.Add(maLichThiParam);
 
-            var trangThaiParam = dbConnection.CreateCommand().CreateParameter();
-            trangThaiParam.ParameterName = "@TrangThai";
-            trangThaiParam.Value = registerInformation.TrangThaiThanhToan;
-            parameters.Add(trangThaiParam);
+            var trangThaiThanhToanParam = dbConnection.CreateCommand().CreateParameter();
+            trangThaiThanhToanParam.ParameterName = "@TrangThaiThanhToan";
+            trangThaiThanhToanParam.Value = registerInformation.TrangThaiThanhToan;
+            parameters.Add(trangThaiThanhToanParam);
 
+            var trangThaiDangKyParam = dbConnection.CreateCommand().CreateParameter();
+            trangThaiDangKyParam.ParameterName = "@TrangThaiDangKy";
+            trangThaiDangKyParam.Value = registerInformation.TrangThaiDangKy;
+            parameters.Add(trangThaiDangKyParam);
+            
             var loaiKhachHangParam = dbConnection.CreateCommand().CreateParameter();
             loaiKhachHangParam.ParameterName = "@LoaiKhachHang";
             loaiKhachHangParam.Value = registerInformation.LoaiKhachHang;
@@ -104,9 +110,9 @@ namespace ACCI_Center.Dao.RegisterInformation
                 {
                     string sql = """
                 INSERT INTO TTDANGKY (
-                    HoTen, SDT, Email, DiaChi, ThoiDiemDangKy, MaLichThi, TrangThai, LoaiKhachHang
+                    HoTen, SDT, Email, DiaChi, ThoiDiemDangKy, MaLichThi, TrangThaiThanhToan, TrangThaiDangKy, LoaiKhachHang
                 ) VALUES (
-                    @HoTen, @SDT, @Email, @DiaChi, @ThoiDiemDangKy, @MaLichThi, @TrangThai, @LoaiKhachHang
+                    @HoTen, @SDT, @Email, @DiaChi, @ThoiDiemDangKy, @MaLichThi, @TrangThaiThanhToan, @TrangThaiDangKy, @LoaiKhachHang
                 );
                 SELECT CAST(SCOPE_IDENTITY() AS int);
                 """;
@@ -139,9 +145,9 @@ namespace ACCI_Center.Dao.RegisterInformation
                 {
                     string sql = """
                 INSERT INTO TTHISINH (
-                    MaTTDangKy, HoTen, SDT, Email, DaNhanChungChi, DaGuiPhieuDuThi
+                    MaTTDangKy, HoTen, SDT, CCCD, Email, NgaySinh, DaNhanChungChi, DaGuiPhieuDuThi
                 ) VALUES (
-                    @MaTTDangKy, @HoTen, @SDT, @Email, @DaNhanChungChi, @DaGuiPhieuDuThi
+                    @MaTTDangKy, @HoTen, @SDT, @CCCD, @Email, @NgaySinh, @DaNhanChungChi, @DaGuiPhieuDuThi
                 );
                 """;
 
@@ -176,6 +182,11 @@ namespace ACCI_Center.Dao.RegisterInformation
                             emailParam.Value = candidate.Email;
                             command.Parameters.Add(emailParam);
 
+                            var cccdParam = command.CreateParameter();
+                            cccdParam.ParameterName = "@CCCD";
+                            cccdParam.Value = candidate.CCCD;
+                            command.Parameters.Add(cccdParam);
+
                             var daNhanChungChiParam = command.CreateParameter();
                             daNhanChungChiParam.ParameterName = "@DaNhanChungChi";
                             daNhanChungChiParam.Value = candidate.DaNhanChungChi;
@@ -185,6 +196,11 @@ namespace ACCI_Center.Dao.RegisterInformation
                             daGuiPhieuDuThiParam.ParameterName = "@DaGuiPhieuDuThi";
                             daGuiPhieuDuThiParam.Value = candidate.DaGuiPhieuDuThi;
                             command.Parameters.Add(daGuiPhieuDuThiParam);
+
+                            var ngaySinhParam = command.CreateParameter();
+                            ngaySinhParam.ParameterName = "@NgaySinh";
+                            ngaySinhParam.Value = candidate.NgaySinh;
+                            command.Parameters.Add(ngaySinhParam);
 
                             rowsAffected += command.ExecuteNonQuery();
                         }
@@ -312,9 +328,13 @@ namespace ACCI_Center.Dao.RegisterInformation
             {
                 whereClauses.Add("MaLichThi = @MaLichThi");
             }
-            if (!string.IsNullOrEmpty(filterObject.TrangThai))
+            if (!string.IsNullOrEmpty(filterObject.TrangThaiThanhToan))
             {
-                whereClauses.Add("TrangThai = @TrangThai");
+                whereClauses.Add("TrangThaiThanhToan = @TrangThaiThanhToan");
+            }
+            if (!string.IsNullOrEmpty(filterObject.TrangThaiDangKy))
+            {
+                whereClauses.Add("TrangThai = @TrangThaiDangKy");
             }
             if (!string.IsNullOrEmpty(filterObject.LoaiKhachHang))
             {
@@ -385,11 +405,18 @@ namespace ACCI_Center.Dao.RegisterInformation
                 maLichThiParam.Value = filterObject.MaLichThi.Value;
                 dbParameters.Add(maLichThiParam);
             }
-            if (!string.IsNullOrEmpty(filterObject.TrangThai))
+            if (!string.IsNullOrEmpty(filterObject.TrangThaiThanhToan))
             {
                 var trangThaiParam = dbConnection.CreateCommand().CreateParameter();
-                trangThaiParam.ParameterName = "@TrangThai";
-                trangThaiParam.Value = filterObject.TrangThai;
+                trangThaiParam.ParameterName = "@TrangThaiThanhToan";
+                trangThaiParam.Value = filterObject.TrangThaiThanhToan;
+                dbParameters.Add(trangThaiParam);
+            }
+            if (!string.IsNullOrEmpty(filterObject.TrangThaiDangKy))
+            {
+                var trangThaiParam = dbConnection.CreateCommand().CreateParameter();
+                trangThaiParam.ParameterName = "@TrangThaiDangKy";
+                trangThaiParam.Value = filterObject.TrangThaiDangKy;
                 dbParameters.Add(trangThaiParam);
             }
             if (!string.IsNullOrEmpty(filterObject.LoaiKhachHang))
@@ -532,7 +559,8 @@ namespace ACCI_Center.Dao.RegisterInformation
                         DiaChi = @DiaChi,
                         ThoiDiemDangKy = @ThoiDiemDangKy,
                         MaLichThi = @MaLichThi,
-                        TrangThai = @TrangThai,
+                        TrangThaiDangKy = @TrangThaiDangKy,
+                        TrangThaiThanhToan = @TrangThaiThanhToan,
                         LoaiKhachHang = @LoaiKhachHang
                     WHERE MaTTDangKy = @MaTTDangKy;
                     """;
@@ -542,11 +570,14 @@ namespace ACCI_Center.Dao.RegisterInformation
                     }
 
                     DbParameter[] parameters = buildParametersForRegisterInformation(registerInformation, connection);
+                    var maTTDangKyParam = connection.CreateCommand().CreateParameter();
+                    maTTDangKyParam.ParameterName = "@MaTTDangKy";
+                    maTTDangKyParam.Value = registerInformation.MaTTDangKy ?? 0; 
 
                     using (var command = connection.CreateCommand()) { 
                         command.CommandText = sql;
                         command.Parameters.AddRange(parameters);
-
+                        command.Parameters.Add(maTTDangKyParam);
                         int rowsAffected = command.ExecuteNonQuery();
                         return rowsAffected;
                     }

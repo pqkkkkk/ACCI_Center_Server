@@ -17,15 +17,15 @@ using System.Transactions;
 
 namespace ACCI_Center.Service.TTDangKy
 {
-   class RegisterInformationService : IRegisterInformationService
-   {
-       private IRegisterInformationDao registerInformationDao;
-       private IExamScheduleDao examScheduleDao;
-       private IInvoiceDao invoiceDao;
-       private readonly IEmailService emailService;
-       
-       public RegisterInformationService(IRegisterInformationDao ttDangKyDao, IExamScheduleDao lichThiDao,
-                                          IInvoiceDao invoiceDao, IEmailService emailService)
+    class RegisterInformationService : IRegisterInformationService
+    {
+        private IRegisterInformationDao registerInformationDao;
+        private IExamScheduleDao examScheduleDao;
+        private IInvoiceDao invoiceDao;
+        private readonly IEmailService emailService;
+
+        public RegisterInformationService(IRegisterInformationDao ttDangKyDao, IExamScheduleDao lichThiDao,
+                                           IInvoiceDao invoiceDao, IEmailService emailService)
         {
             registerInformationDao = ttDangKyDao;
             examScheduleDao = lichThiDao;
@@ -106,18 +106,18 @@ namespace ACCI_Center.Service.TTDangKy
             }
         }
 
-       public List<Entity.RegisterInformation> LoadRegisterInformation()
-       {
-           throw new NotImplementedException();
-       }
+        public List<Entity.RegisterInformation> LoadRegisterInformation()
+        {
+            throw new NotImplementedException();
+        }
 
-       public List<Entity.RegisterInformation> LoadRegisterInformation(RegisterInformationFilterObject registerInformationFilterObject)
-       {
-           throw new NotImplementedException();
-       }
+        public List<Entity.RegisterInformation> LoadRegisterInformation(RegisterInformationFilterObject registerInformationFilterObject)
+        {
+            throw new NotImplementedException();
+        }
 
-       public RegisterInformationByIdResponse LoadRegisterInformationById(int MaTTDangKy, string? parts)
-       {
+        public RegisterInformationByIdResponse LoadRegisterInformationById(int MaTTDangKy, string? parts)
+        {
             try
             {
                 Entity.RegisterInformation? registerInformation = registerInformationDao.LoadRegisterInformationById(MaTTDangKy);
@@ -133,7 +133,7 @@ namespace ACCI_Center.Service.TTDangKy
                         message = "Register information not found."
                     };
                 }
-                if(parts == null)
+                if (parts == null)
                 {
                     return new RegisterInformationByIdResponse
                     {
@@ -142,7 +142,7 @@ namespace ACCI_Center.Service.TTDangKy
                         message = "Success"
                     };
                 }
-                if(parts.Contains("candidateInformation"))
+                if (parts.Contains("candidateInformation"))
                 {
                     List<Entity.CandidateInformation> candidatesInformationResult = registerInformationDao.LoadCandidatesInformation(MaTTDangKy);
                     if (candidatesInformationResult == null || candidatesInformationResult.Count == 0)
@@ -155,7 +155,7 @@ namespace ACCI_Center.Service.TTDangKy
                     }
                     candidatesInformation = candidatesInformationResult;
                 }
-                if(parts.Contains("examSchedule"))
+                if (parts.Contains("examSchedule"))
                 {
                     examSchedule = examScheduleDao.GetExamScheduleById(registerInformation.MaLichThi ?? 0);
                     if (examSchedule == null)
@@ -167,7 +167,7 @@ namespace ACCI_Center.Service.TTDangKy
                         };
                     }
                 }
-                if(parts.Contains("test"))
+                if (parts.Contains("test"))
                 {
                     test = examScheduleDao.GetTestById(examSchedule?.BaiThi ?? 0);
                     if (test == null)
@@ -203,8 +203,8 @@ namespace ACCI_Center.Service.TTDangKy
             }
         }
 
-       public PagedResult<Entity.RegisterInformation> LoadRegisterInformation(int pageSize, int currentPageNumber, RegisterInformationFilterObject registerInformationFilterObject)
-       {
+        public PagedResult<Entity.RegisterInformation> LoadRegisterInformation(int pageSize, int currentPageNumber, RegisterInformationFilterObject registerInformationFilterObject)
+        {
             try
             {
                 var result = registerInformationDao.LoadRegisterInformation(pageSize, currentPageNumber, registerInformationFilterObject);
@@ -217,34 +217,60 @@ namespace ACCI_Center.Service.TTDangKy
             }
         }
 
-       public int ReleaseExamRegisterForm()
-       {
-           List<Entity.ExamSchedule> examSchedules = examScheduleDao.GetExamSchedulesForNext2Week();
-           int count = 0;
+        public int ReleaseExamRegisterForm()
+        {
+            try
+            {
+                using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    List<Entity.ExamSchedule> examSchedules = examScheduleDao.GetExamSchedules(pageSize: 1000, currentPageNumber: 1,
+                        filterObject: new ExamScheduleFilterObject
+                        {
+                            NgayThiBatDau = DateTime.Now,
+                            NgayThiKetThuc = DateTime.Now.AddDays(7),
+                            DaPhatHanhPhieuDuThi = false,
+                            LoaiLichThi = "Tất cả",
+                        }).items.ToList();
+
+                    int count = 0;
 
 
-           foreach (var schedule in examSchedules)
-           {
-               List<Entity.CandidateInformation> candidates = examScheduleDao.GetCandidatesByExamScheduleId(schedule.MaLichThi);
-               foreach (var candidate in candidates)
-               {
-                   if (candidate.DaGuiPhieuDuThi == false)
-                   {
-                       bool sent = emailService.SendEmail(candidate);
-                       if (sent)
-                       {
-                           candidate.DaGuiPhieuDuThi = true;
-                           registerInformationDao.UpdateCandidateStatus(candidate.MaTTThiSinh.GetValueOrDefault(), candidate.DaGuiPhieuDuThi);
-                           count++;
-                       }
-                   }
-               }
-           }
+                    foreach (var schedule in examSchedules)
+                    {
+                        Entity.Test test = examScheduleDao.GetTestById(schedule.BaiThi) ?? throw new Exception("Test not found for the exam schedule.");
 
+                        List<Entity.CandidateInformation> candidates = examScheduleDao.GetCandidatesByExamScheduleId(schedule.MaLichThi);
 
-           return count;
-       }
+                        foreach (var candidate in candidates)
+                        {
+                            ExamRegisterFormViewModel viewModel = new ExamRegisterFormViewModel
+                            {
+                                candidateInformation = candidate,
+                                examSchedule = schedule,
+                                test = test
+                            };
+                            if (candidate.DaGuiPhieuDuThi == false)
+                            {
+                                bool sent = emailService.SendEmail(viewModel);
+                                if (sent)
+                                {
+                                    candidate.DaGuiPhieuDuThi = true;
+                                    registerInformationDao.UpdateCandidateStatus(candidate.MaTTThiSinh.GetValueOrDefault(), candidate.DaGuiPhieuDuThi);
+                                    count++;
+                                }
+                            }
+                        }
 
+                    }
 
-   }
+                    transaction.Complete();
+                    return count;
+                }
+            }
+            catch (Exception ex)
+            {
+                return 0;
+            } 
+        }
+    }
 }
